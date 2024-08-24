@@ -1,0 +1,1 @@
+npx jsr publish --dry-run

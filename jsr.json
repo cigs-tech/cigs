@@ -1,0 +1,18 @@
+{
+  "name": "@cigs-tech/cigs",
+  "version": "0.1.0",
+  "exports": "./src/index.ts",
+  "publish": {
+    "include": [
+      "CHANGELOG.md",
+      "LICENSE",
+      "README.md",
+      "index.ts",
+      "package.json",
+      "src/**/*.ts"
+    ],
+    "exclude": [
+      "**/*.test.ts"
+    ]
+  }
+}
