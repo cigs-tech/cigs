@@ -88,8 +88,8 @@ const smoker = cig("test", inputSchema, (config) => {
 async function main() {
   console.log("Test 1: Running with a string input");
   // const result1 = await smoker.run("Richard Kennedy is a 30-year-old software developer from New York");
-  const result = await smoker.run({ input: 'hello' });
-  // const result = await reverseSmoker.run({ input: 'hello' });
+  // const result = await smoker.run({ input: 'hello' });
+  const result = await reverseSmoker.run("reverse it up");
   console.log("Result 1:", result);
 
   // smoker.run({ veryCool: "jimmython" })
@@ -106,3 +106,13 @@ async function main() {
 main().catch((error) => {
   console.error("An error occurred:", error);
 });
+
+// const reverseSmoker = cig("reverse", (config) => {
+//   config.setDescription('Reverse the input string. Just return the reversed string, nothing else');
+//   config.setModel('gpt-4o-2024-08-06');
+//   config.setLogLevel(1);
+// })
+
+// const output = await  reverseSmoker.run("hello")
+
+// console.log(output)

@@ -1,11 +1,20 @@
 {
-  "name": "cigs",
+  "name": "cig",
   "version": "0.1.0",
   "description": "Call typescript methods with natural language and get the response back in specified structure",
   "main": "src/index.js",
   "scripts": {
     "test": "vitest",
-    "test:loud": "vitest --reporter=basic --disable-console-intercept"
+    "test:loud": "vitest --reporter=basic --disable-console-intercept",
+    "publish": "npx jsr publish --dry-run",
+    "example:weather": "npx ts-node examples/testWeather.ts",
+    "example:classification": "npx ts-node examples/testClassification.ts",
+    "example:simple": "npx ts-node examples/testSimple.ts",
+    "example:extraction": "npx ts-node examples/testExtraction.ts",
+    "example:generation": "npx ts-node examples/testGeneration.ts",
+    "example:chaining": "npx ts-node examples/testChaining.ts",
+    "example:handler": "npx ts-node examples/testHandler.ts",
+    "example:uses": "npx ts-node examples/testUses.ts"
   },
   "author": "Jordan Howlett <jordan@howlett.io>",
   "license": "MIT",

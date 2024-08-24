@@ -1,0 +1,21 @@
+name: Publish the package
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  jsr:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+      - name: Publish on tag
+        run: deno run -A jsr:@david/publish-on-tag@0.1.4
