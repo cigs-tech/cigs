@@ -29,7 +29,7 @@ jobs:
         run: deno check src/index.ts --unstable-sloppy-imports
 
       - name: Lint
-        run: deno lint
+        run: deno lint --unstable-sloppy-imports
 
       - name: Publish Dry Run
         run: deno publish --dry-run --allow-dirty
