@@ -1,4 +1,7 @@
 {
+  "name": "@cigs/cigs",
+  "version": "0.0.0",
+  "exports": "./src/index.ts",
   "lint": {
     "rules": {
       "exclude": ["no-explicit-any"]
