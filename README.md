@@ -5,23 +5,25 @@
 [![CI](https://github.com/cigs-tech/cigs/actions/workflows/ci.yml/badge.svg)](https://github.com/cigs-tech/cigs/actions/workflows/ci.yml)
 [![GitHub license](https://img.shields.io/github/license/cigs-tech/cigs)](https://github.com/cigs-tech/cigs/blob/main/LICENSE.txt)
 [![Twitter Follow](https://img.shields.io/twitter/follow/Jonovono?style=social)](https://twitter.com/Jonovono)
+[![Discord](https://img.shields.io/discord/1071029581009657896?style=flat&logo=discord&logoColor=fff&color=404eed)](https://discord.gg/AZHft5hCzf)
 
-cigs are Ai typescript functions. They are composable intelligent generative snippets that offer new ways to build powerful applications leveraging the latest in Ai. cigs is the lodash for AI functions or GraphQL for code execution.
+cigs are Ai typescript functions. They are **composable** **intelligent** **generative** **snippets** that offer new ways to build powerful applications leveraging the latest in Ai. cigs is the lodash for AI functions or GraphQL for code execution. cigs is powered by OpenAI [structured outputs](https://platform.openai.com/docs/guides/structured-outputs) and [function calling](https://platform.openai.com/docs/guides/function-calling). In the future, we will support more LLMs and more structured output types but Structured outputs enables some powerful stuff.
+
+![cigs](https://i.imgur.com/QvJerh0.png)
 
 Think of it like a combination of [instructor](https://github.com/jxnl/instructor), [askmarvin](https://www.askmarvin.ai), and [fructose](https://github.com/bananaml/fructose), but with a few main differences:
 
 - **Uses OpenAI structured outputs**: Structured outputs simplify a lot of the logic of these libraries!
 - **Written in TypeScript**: Lots of cool libraries for python, but TS is lacking :(
 - **Chainable**: Easily chain multiple cigs together to create complex workflows
-- **Type Safe**: Use Zod schemas to ensure the output of your cigs is always correct
+- **Type Safe**: Use Zod schemas to define the input and output of your cigs
 - **Flexible**: Call cigs with natural language or with structured inputs
-- **Dynamic function response**: You can define a typescript function with a specific input schema. You can then call that function with the input or natural language and specify the desired output schema at run time. We will use OpenAI structured outputs to map the function response to the desired output schema. So you can have one function be called from different places all with different type-safe outputs
+- **Dynamic function response**: You can define a typescript function with a specific input schema. You can then call that function with the input or natural language and specify the desired output schema at run time. We will use OpenAI structured outputs to map the function response to the desired output schema. So you can have one function be called from different places all with different type-safe outputs. Although not the same, I think of it like GrahpQL for code execution?
 
-![cigs](https://i.imgur.com/QvJerh0.png)
 
 > [!CAUTION]
 > This library is still under development
-> I will be erring on the side of speed Please join the Discord if you need help or something is broken
+> I will be erring on the side of speed, and possibly making drastic changes. Please join the Discord if you need help or something is broken [Discord](https://discord.gg/AZHft5hCzf)
 
 ## What are cigs
 
@@ -150,7 +152,7 @@ There are a few ways to initialize a cigs instance
 ```ts
 import cig, { z } from "@cigs/cigs";
 
-const cig = cig("NAME", INPUT_ZOD_SCHEMA, CONFIGURATOR)
+const cig = cig("NAME", INPUT_ZOD_SCHEMA?, CONFIGURATOR?)
 ```
 
 No configuration
@@ -159,13 +161,15 @@ No configuration
 // In the simplest case, you can just pass the name of the cig
 const simplestCig = cig("my-cig")
 
-// This won't do much of anything, but you can call it with natural language and it will return essentially just the raw input of OpenAI `openAIClient.chat.completions.create` call
+// This won't do much of anything, but you can call it with natural language 
+// and it will return essentially just the 
+// raw output of OpenAI `openAIClient.chat.completions.create` call
 
 const output = await simplestCig.run("Give me a random word");
 // Serendipity
 ```
 
-Just with a input schema. The input schema makes it so you can control the input of the cig. You are still able to call it with natural language and it will map it to the input schema. This is more useful when combined with handler functions, but can be used on its own
+Just with a input schema. The input schema makes it so you can control the input of the cig. You are still able to call it with natural language and it will map it to the input schema, but you get typesafety for calling it with structured inputs. This is more useful when combined with handler functions, but can be used on its own
 
 ```ts
 const simpleZodSchema = z.object({
@@ -184,7 +188,7 @@ const result2 = await cigWithSchema.run("translate hello to french");
 // -> "Hello" in French is "Bonjour."
 ```
 
-Just with configuration
+Just with configuration. You can add instructions, examples, and more to help guide the cig. These can be applied when initializing the cig or when adding operations.
 
 ```ts
 const cigWithConfig = cig("my-cig", (config) => {
@@ -236,7 +240,7 @@ So ya, it's pretty flexible and can handle a lot of different use cases. This do
 
 ### Quick Start { simple }
 
-> [!TIP] 
+> [!TIP]
 > Clone this repo and run this example with `npm run example:simple`
 
 ```ts
@@ -262,7 +266,7 @@ const aiFunc = cig("ai-func", (config) => {
 })();
 ```
 
-### Example: { Weather }
+### Advanced Example: { Weather }
 
 > [!TIP]
 > Clone this repo and run this example with `npm run example:weather`
@@ -635,18 +639,36 @@ const getColorCompliment = cig("getColorCompliment", colorSchema)
   });
 
 // Define a cig that uses both getFavoriteColor and getColorCompliment
+const outputSchema = z.object({
+  username: z.string(),
+  favoriteColor: z.string(),
+  compliment: z.string(),
+});
+
+// Define a cig that uses both getFavoriteColor and getColorCompliment
+// Specify a output schema
 const getUserCompliment = cig("getUserCompliment", userInfoSchema)
-  .uses([getFavoriteColor, getColorCompliment]);
+  .uses([getFavoriteColor, getColorCompliment], outputSchema, config => {
+    config.addInstruction("Get the user's favorite color and compliment them on it");
+  });
 
 // Usage example
 (async () => {
   try {
-    const result = await getUserCompliment.run({ username: "alice" }); // Alice's favorite color is blue, and her choice is complimented with: "You have great taste!"
+    const result = await getUserCompliment.run({ username: "alice" }); 
     console.log(result);
   } catch (error) {
     console.error("Error:", error);
   }
 })();
+```
+
+```json
+{
+  "username": "alice",
+  "favoriteColor": "blue",
+  "compliment": "You have great taste!"
+}
 ```
 
 ## Vision and Future Direction
@@ -670,7 +692,7 @@ applications. Our roadmap includes:
 
 ## Get in touch
 
-💡 **Feature idea?** share it in [our Discord](https://discord.com/invite/Kgw4HpcuYG) 
+💡 **Feature idea?** share it in [our Discord](https://discord.gg/AZHft5hCzf) 
 🐛 **Found a bug?** feelfree to [open an issue](https://github.com/cigs-tech/cigs/issues/new/choose)
 
 ## Inspiration
@@ -686,4 +708,4 @@ cigs is licensed under the MIT license. See the LICENSE file for details.
 
 ---
 
-🚬
+🚬 happy chainsmoking!

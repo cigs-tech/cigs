@@ -17,7 +17,8 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 async function fetchWeatherData(
   location: string,
 ): Promise<{ temperature: number; precipitation: number }> {
-  await sleep(1000);
+  console.log("Fetching weather data for", location);
+  // await sleep(1000);
   const data = {
     "New York": { temperature: 20, precipitation: 10 },
     "London": { temperature: 15, precipitation: 5 },
@@ -26,14 +27,22 @@ async function fetchWeatherData(
   return data[location as keyof typeof data];
 }
 
-const getWeatherData = cig("getWeatherData", locationSchema)
+const getWeatherData = cig("getWeatherData", locationSchema, (config) => {
+  config.setDescription("Get the weather data for a location");
+  config.setModel("gpt-4o-2024-08-06");
+  config.setLogLevel(1);
+})
   .handler(async (input) => {
     console.log("GetWeatherData", input, input.location);
     const data = await fetchWeatherData(input.location);
     return data;
   });
 
-const getUserInfo = cig("getUserInfo", userInfoSchema)
+const getUserInfo = cig("getUserInfo", userInfoSchema, (config) => {
+  config.setDescription("Get the user info for a username");
+  config.setModel("gpt-4o-2024-08-06");
+  config.setLogLevel(1);
+})
   .handler((input) => {
     console.log("GetUserInfo", input);
     const userInfo = {
@@ -45,24 +54,56 @@ const getUserInfo = cig("getUserInfo", userInfoSchema)
       { name: "Unknown", location: "Unknown" };
   });
 
+const weatherOutputSchema = z.object({
+  numUsers: z.number(),
+  userInfo: z.array(z.object({
+    name: z.string(),
+    location: z.string(),
+    temperature: z.number(),
+    precipitation: z.number(),
+    nickname: z.string(),
+  })),
+});
+
 const handleUsers = cig("handleUsers", usernameSchema, (config) => {
-  config.setDescription(
-    "Handle weather notifications for users and create a nickname for each user",
-  );
   config.setModel("gpt-4o-2024-08-06");
   config.setLogLevel(1);
 })
-  .uses([getUserInfo, getWeatherData])
-  .schema(z.object({
-    numUsers: z.number(),
-    userInfo: z.array(z.object({
-      name: z.string(),
-      location: z.string(),
-      temperature: z.number(),
-      precipitation: z.number(),
-      nickname: z.string(),
-    })),
-  }));
+  .uses([getUserInfo, getWeatherData], config => {
+    config.addInstruction(
+      "For each user, get the user info and weather data for the location the user is in. Use the tools, then create a nickname for each user",
+    );
+  })
+  .log((input) => {
+    console.log("handleUsers", input);
+  });
+// .schema(z.object({
+//   numUsers: z.number(),
+//   userInfo: z.array(z.object({
+//     name: z.string(),
+//     location: z.string(),
+//     temperature: z.number(),
+//     precipitation: z.number(),
+//     nickname: z.string(),
+//   })),
+// }));
+
+// const handleWeather = cig("handleWeather", (config) => {
+//   config.setDescription(
+//     "For given location get the weather data",
+//   );
+//   config.setModel("gpt-4o-2024-08-06");
+//   config.setLogLevel(1);
+// })
+//   .uses([getWeatherData])
+//   .schema(z.object({
+//     numUsers: z.number(),
+//     userInfo: z.array(z.object({
+//       location: z.string(),
+//       temperature: z.number(),
+//       precipitation: z.number(),
+//     })),
+//   }));
 
 // This can then be used like this
 

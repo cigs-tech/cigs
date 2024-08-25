@@ -398,20 +398,61 @@ export class ChainSmoker<I = any, O = I> {
 
   /**
    * Executes a series of tools (other ChainSmoker instances) on the input.
-   *
-   * @param tools - An array of ChainSmoker instances to be used as tools.
-   * @param configurator - Optional function to configure the operation.
-   * @returns A new {@link ChainSmoker} instance with a string output type.
+   * 
+   * @template S - The Zod schema type for output validation (optional).
+   * @template I - The input type of the ChainSmoker instance.
+   * 
+   * @overload
+   * @param {ChainSmoker<any, any>[]} tools - An array of ChainSmoker instances to be used as tools.
+   * @param {S} schema - A Zod schema for output validation and typing.
+   * @param {(config: Configurator<z.infer<S>>) => void} [configurator] - Optional function to configure the operation.
+   * @returns {ChainSmoker<I, z.infer<S>>} A new ChainSmoker instance with the inferred schema type as output.
+   * 
+   * @overload
+   * @param {ChainSmoker<any, any>[]} tools - An array of ChainSmoker instances to be used as tools.
+   * @param {(config: Configurator<string>) => void} [configurator] - Optional function to configure the operation.
+   * @returns {ChainSmoker<I, string>} A new ChainSmoker instance with string output type.
+   * 
+   * @param {ChainSmoker<any, any>[]} tools - An array of ChainSmoker instances to be used as tools.
+   * @param {S | ((config: Configurator<string>) => void)} [schemaOrConfigurator] - Either a Zod schema or a configurator function.
+   * @param {(config: Configurator<z.infer<S> | string>) => void} [configurator] - Optional function to configure the operation.
+   * @returns {ChainSmoker<I, z.infer<S> | string>} A new ChainSmoker instance with either the inferred schema type or string as output.
+   * 
+   * @remarks
+   * This method creates a new ChainSmoker instance that executes the provided tools on the input.
+   * It supports optional schema validation and configuration.
+   * If a schema is provided, the output will be validated and typed accordingly.
+   * The method uses the `executeTools` function internally to process the input through the provided tools.
+   * The resulting ChainSmoker instance inherits the configuration from the current instance, with possible modifications from the configurator.
    */
+  uses<S extends ZodSchema<any>>(
+    tools: ChainSmoker<any, any>[],
+    schema: S,
+    configurator?: (config: Configurator<z.infer<S>>) => void
+  ): ChainSmoker<I, z.infer<S>>;
   uses(
     tools: ChainSmoker<any, any>[],
-    configurator?: (config: Configurator<string>) => void,
-  ): ChainSmoker<I, string> {
-    const config = new Configurator<string>();
-    if (configurator) {
+    configurator?: (config: Configurator<string>) => void
+  ): ChainSmoker<I, string>;
+  uses<S extends ZodSchema<any>>(
+    tools: ChainSmoker<any, any>[],
+    schemaOrConfigurator?: S | ((config: Configurator<string>) => void),
+    configurator?: (config: Configurator<z.infer<S> | string>) => void
+  ): ChainSmoker<I, z.infer<S> | string> {
+    let schema: S | undefined;
+    let config = new Configurator<z.infer<S> | string>();
+
+    if (schemaOrConfigurator instanceof z.ZodType) {
+      schema = schemaOrConfigurator;
+      if (configurator) {
+        configurator(config);
+      }
+    } else if (typeof schemaOrConfigurator === "function") {
+      configurator = schemaOrConfigurator;
       configurator(config);
     }
-    const operation: Operation<O, string> = async (input: O) => {
+
+    const operation: Operation<O, z.infer<S> | string> = async (input: O) => {
       this.logger.debug({
         operation: "uses",
         context: "init",
@@ -421,8 +462,9 @@ export class ChainSmoker<I = any, O = I> {
       const finalContent = await executeTools(
         tools,
         JSON.stringify(input),
+        schema,
         config.getInstruction(),
-        { model: this.config.model },
+        { model: this.config.model }
       );
 
       this.logger.debug({
@@ -431,16 +473,18 @@ export class ChainSmoker<I = any, O = I> {
         finalContent,
         instruction: config.getInstruction(),
       });
+
       return finalContent;
     };
-    const newChainSmoker = new ChainSmoker<I, string>(
+
+    const newChainSmoker = new ChainSmoker<I, z.infer<S> | string>(
       this.config.name,
       this.inputSchema,
       {
         ...this.config,
         instruction: config.getInstruction(),
         examples: config.getExamples(),
-      },
+      }
     );
     newChainSmoker.operations = [...this.operations, operation];
     return newChainSmoker;
@@ -498,7 +542,6 @@ export class ChainSmoker<I = any, O = I> {
 
     if (this.operations.length === 0) {
       const processedInput = typeof input === "string" ? input : JSON.stringify(input);
-      console.log("no operations", processedInput);
       // If no operations are specified, use a default operation
       return this.defaultOperation(processedInput) as unknown as O;
     }

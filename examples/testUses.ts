@@ -37,9 +37,18 @@ const getColorCompliment = cig("getColorCompliment", colorSchema)
     };
   });
 
+
+const outputSchema = z.object({
+  username: z.string(),
+  favoriteColor: z.string(),
+  compliment: z.string(),
+});
+
 // Define a cig that uses both getFavoriteColor and getColorCompliment
 const getUserCompliment = cig("getUserCompliment", userInfoSchema)
-  .uses([getFavoriteColor, getColorCompliment]);
+  .uses([getFavoriteColor, getColorCompliment], outputSchema, config => {
+    config.addInstruction("Get the user's favorite color and compliment them on it");
+  });
 
 // Usage example
 (async () => {
