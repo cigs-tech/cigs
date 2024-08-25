@@ -1,6 +1,6 @@
 import type { ZodSchema } from "zod";
 import { zodResponseFormat } from "openai/helpers/zod";
-import { openAIClient } from "../clients";
+import { openAIClient } from "../clients/index.ts";
 
 /**
  * Processes the input by getting a structured response according to the provided Zod schema using OpenAI's API.

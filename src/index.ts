@@ -11,7 +11,7 @@
  */
 
 import { z } from "zod";
-import { cig } from "./smoke";
+import { cig } from "./smoke.ts"; // Add .ts extension
 
 /**
  * Re-export of the zod library for schema validation.

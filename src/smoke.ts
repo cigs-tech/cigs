@@ -2,24 +2,24 @@ import { Logger } from "tslog";
 import { z, ZodType } from "zod";
 import type { ZodSchema } from "zod";
 
-import { openAIClient } from "./clients";
+import { openAIClient } from "./clients/index.ts";
 import {
   formatClassifyPrompt,
   formatExtractPrompt,
   formatGeneratePrompt,
-} from "./prompts";
+} from "./prompts/index.ts";
 import type {
   ChainSmokerConfig,
   CustomLogObj,
   Example,
   Operation,
-} from "./types";
+} from "./types/index.ts";
 import {
   createLogitBias,
   executeTools,
   getStructuredResponse,
   processInput,
-} from "./utils";
+} from "./utils/index.ts";
 
 /**
  * A utility class for configuring ChainSmoker operations.

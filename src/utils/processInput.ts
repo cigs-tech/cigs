@@ -1,6 +1,6 @@
 import { z } from "zod";
 import type { ZodSchema } from "zod";
-import { getStructuredResponse } from "./getStructuredResponse";
+import { getStructuredResponse } from "./getStructuredResponse.ts";
 
 /**
  * Processes the input by either validating it directly or parsing it and validating it if it’s a string.
@@ -57,8 +57,7 @@ export async function processInput<TInput>(
   } catch (error) {
     if (error instanceof z.ZodError) {
       throw new Error(
-        `Invalid input format: ${
-          error.errors.map((err) => err.message).join(", ")
+        `Invalid input format: ${error.errors.map((err) => err.message).join(", ")
         }`,
       );
     }

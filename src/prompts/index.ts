@@ -1,3 +1,3 @@
-export * from "./classifyPrompt";
-export * from "./extractPrompt";
-export * from "./generatePrompt";
+export * from "./classifyPrompt.ts";
+export * from "./extractPrompt.ts";
+export * from "./generatePrompt.ts";

@@ -1,4 +1,4 @@
-import { templator } from "../clients/templator";
+import { templator } from "../clients/index.ts";
 
 export interface GeneratePromptContext<T> {
   data: string;

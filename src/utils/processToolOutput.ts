@@ -1,5 +1,5 @@
 import type { ZodSchema } from "zod";
-import { getStructuredResponse } from "./getStructuredResponse";
+import { getStructuredResponse } from "./getStructuredResponse.ts";
 
 /**
  * Processes the final tool output by optionally validating it against a schema.
