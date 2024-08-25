@@ -1,7 +1,7 @@
 import { openAIClient } from "../clients/index.ts";
 import { createTools } from "./createTools.ts";
 import type { ChainSmoker } from "../smoke.ts";
-import { z, ZodSchema } from "zod";
+import type { z, ZodSchema } from "zod";
 import { zodResponseFormat } from "openai/helpers/zod";
 
 /**
@@ -61,19 +61,19 @@ export async function executeTools<T extends ZodSchema<any>>(
 
   const runnerInstance = openAIClient.beta.chat.completions
     .runTools(runnerOptions)
-    .on("message", (message: any) => {
-      if (message.role === "tool") {
-        // console.log(`Tool ${message.name} output: `, message.content);
-      } else {
-        // console.log(`Assistant: ${message.content}`);
-      }
-    })
-    .on("functionCall", (message: any) => {
-      // console.log(`Function call: ${message.name}`, message.arguments);
-    })
-    .on("finalFunctionCallResult", (message: any) => {
-      // console.log(`Final function call result: ${message.name}`, message.arguments);
-    });
+  // .on("message", (message: any) => {
+  //   if (message.role === "tool") {
+  //     // console.log(`Tool ${message.name} output: `, message.content);
+  //   } else {
+  //     // console.log(`Assistant: ${message.content}`);
+  //   }
+  // })
+  // .on("functionCall", (message: any) => {
+  //   // console.log(`Function call: ${message.name}`, message.arguments);
+  // })
+  // .on("finalFunctionCallResult", (message: any) => {
+  //   // console.log(`Final function call result: ${message.name}`, message.arguments);
+  // });
 
   const finalContent = await runnerInstance.finalContent();
   if (finalContent === null) {

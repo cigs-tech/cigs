@@ -440,7 +440,7 @@ export class ChainSmoker<I = any, O = I> {
     configurator?: (config: Configurator<z.infer<S> | string>) => void
   ): ChainSmoker<I, z.infer<S> | string> {
     let schema: S | undefined;
-    let config = new Configurator<z.infer<S> | string>();
+    const config = new Configurator<z.infer<S> | string>();
 
     if (schemaOrConfigurator instanceof z.ZodType) {
       schema = schemaOrConfigurator;
