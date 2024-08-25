@@ -692,7 +692,8 @@ applications. Our roadmap includes:
 
 ## Get in touch
 
-💡 **Feature idea?** share it in [our Discord](https://discord.gg/AZHft5hCzf) 
+💡 **Feature idea?** share it in [our Discord](https://discord.gg/AZHft5hCzf)
+
 🐛 **Found a bug?** feelfree to [open an issue](https://github.com/cigs-tech/cigs/issues/new/choose)
 
 ## Inspiration
