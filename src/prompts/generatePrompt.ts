@@ -7,7 +7,6 @@ export interface GeneratePromptContext<T> {
   examples?: Array<T>;
 }
 
-
 const GENERATE_PROMPT = `
 |SYSTEM|
 
@@ -41,10 +40,10 @@ Generate a list of <%= it.count %> random entit<%= it.count === 1 ? 'y' : 'ies' 
 <% } %>
 `;
 
-
-
-export async function formatGeneratePrompt<T>(context: GeneratePromptContext<T>): Promise<string> {
-  console.log('context', context);
+export async function formatGeneratePrompt<T>(
+  context: GeneratePromptContext<T>,
+): Promise<string> {
+  console.log("context", context);
   try {
     const result = await templator.renderString(GENERATE_PROMPT, context);
     if (result !== undefined) {

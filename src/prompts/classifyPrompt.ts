@@ -8,7 +8,6 @@ export interface ClassifyPromptContext<T> {
   labels: T[];
 }
 
-
 const CLASSIFY_PROMPT = `
 |SYSTEM|
 # Expert Classifier
@@ -49,7 +48,9 @@ The best label for the data is Label
 `;
 
 // export async function classifyPrompt(context: ClassifyPromptContext) {
-export async function formatClassifyPrompt<T>(context: ClassifyPromptContext<T>): Promise<string> {
+export async function formatClassifyPrompt<T>(
+  context: ClassifyPromptContext<T>,
+): Promise<string> {
   try {
     const result = await templator.renderString(CLASSIFY_PROMPT, context);
     if (result !== undefined) {

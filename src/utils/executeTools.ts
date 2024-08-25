@@ -1,6 +1,6 @@
-import { openAIClient } from '../clients/openai';
-import { createTools } from './createTools';
-import { ChainSmoker } from '../smoke';
+import { openAIClient } from "../clients/openai";
+import { createTools } from "./createTools";
+import { ChainSmoker } from "../smoke";
 
 /**
  * Executes a series of tools provided in the `uses` array on the raw text input.
@@ -13,36 +13,35 @@ import { ChainSmoker } from '../smoke';
  * @param {string} [description] - An optional description to guide the tool execution.
  * @param {Object} [options] - Optional settings for processing the input.
  * @param {string} [options.model='gpt-4o-2024-08-06'] - The OpenAI model to use for processing.
- * 
+ *
  * @returns {Promise<string>} The final content after all tools have been executed.
  *
  * @throws {Error} Will throw an error if the final content is `null`.
  *
  * @remarks
- * This function processes the `rawText` input by executing a series of tools specified in the `uses` array. 
+ * This function processes the `rawText` input by executing a series of tools specified in the `uses` array.
  * Each tool is created using the `createTools` function and is run sequentially using the OpenAI model specified in the `options`.
- * 
- * The function listens for tool outputs during execution and ensures that the final content is non-null before returning it. 
+ *
+ * The function listens for tool outputs during execution and ensures that the final content is non-null before returning it.
  * If the final content is `null`, an error is thrown.
- * 
- **/
+ */
 
 export async function executeTools(
   tools: ChainSmoker<any, any>[],
   rawText: string,
   description?: string,
-  options: { model?: string } = {}
+  options: { model?: string } = {},
 ): Promise<string> {
-  const { model = 'gpt-4o-2024-08-06' } = options;
+  const { model = "gpt-4o-2024-08-06" } = options;
   const createdTools = createTools(tools);
 
   const messages = [
     {
-      role: 'system' as const,
-      content: description || 'Use the supplied tools to assist the user.',
+      role: "system" as const,
+      content: description || "Use the supplied tools to assist the user.",
     },
     {
-      role: 'user' as const,
+      role: "user" as const,
       content: rawText,
     },
   ];
@@ -53,8 +52,8 @@ export async function executeTools(
       messages,
       tools: createdTools,
     })
-    .on('message', (message: any) => {
-      if (message.role === 'tool') {
+    .on("message", (message: any) => {
+      if (message.role === "tool") {
         // console.log(`Tool ${message.name} output: `, message.content);
       } else {
         // console.log(`Assistant: ${message.content} `);
@@ -63,7 +62,7 @@ export async function executeTools(
 
   const finalContent = await runnerInstance.finalContent();
   if (finalContent === null) {
-    throw new Error('Final content is null');
+    throw new Error("Final content is null");
   }
   return finalContent;
 }

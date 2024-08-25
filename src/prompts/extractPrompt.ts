@@ -2,7 +2,6 @@ import { templator } from "../clients/templator";
 import { Example } from "../types";
 import { ZodSchema } from "zod";
 
-
 export interface ExtractPromptContext<T> {
   data: string;
   instructions?: string;
@@ -27,9 +26,10 @@ requested format.
 <% } %>
 `;
 
-
 // export async function classifyPrompt(context: ClassifyPromptContext) {
-export async function formatExtractPrompt<T>(context: ExtractPromptContext<T>): Promise<string> {
+export async function formatExtractPrompt<T>(
+  context: ExtractPromptContext<T>,
+): Promise<string> {
   try {
     const result = await templator.renderString(EXTRACT_PROMPT, context);
     if (result !== undefined) {

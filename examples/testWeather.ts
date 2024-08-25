@@ -1,22 +1,27 @@
 // import cig, { z } from '@cigs/cigs';
-import cig, { z } from '../src/index';
+import cig, { z } from "../src/index";
 const locationSchema = z.object({
   location: z.string(),
-})
+});
 
 const userInfoSchema = z.object({
   username: z.string(),
-})
+});
 
 const usernameSchema = z.object({
   usernames: z.array(z.string()),
-})
+});
 
-async function fetchWeatherData(location: string): Promise<{ temperature: number; precipitation: number }> {
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+async function fetchWeatherData(
+  location: string,
+): Promise<{ temperature: number; precipitation: number }> {
+  await sleep(1000);
   const data = {
-    'New York': { temperature: 20, precipitation: 10 },
-    'London': { temperature: 15, precipitation: 5 },
-    'Tokyo': { temperature: 25, precipitation: 20 },
+    "New York": { temperature: 20, precipitation: 10 },
+    "London": { temperature: 15, precipitation: 5 },
+    "Tokyo": { temperature: 25, precipitation: 20 },
   };
   return data[location as keyof typeof data];
 }
@@ -29,18 +34,21 @@ const getWeatherData = cig("getWeatherData", locationSchema)
   });
 
 const getUserInfo = cig("getUserInfo", userInfoSchema)
-  .handler(async (input) => {
+  .handler((input) => {
     console.log("GetUserInfo", input);
     const userInfo = {
-      'john_doe': { name: 'John Doe', location: 'New York' },
-      'jane_smith': { name: 'Jane Smith', location: 'London' },
-      'alice_wong': { name: 'Alice Wong', location: 'Tokyo' },
+      "john_doe": { name: "John Doe", location: "New York" },
+      "jane_smith": { name: "Jane Smith", location: "London" },
+      "alice_wong": { name: "Alice Wong", location: "Tokyo" },
     };
-    return userInfo[input.username as keyof typeof userInfo] || { name: 'Unknown', location: 'Unknown' };
+    return userInfo[input.username as keyof typeof userInfo] ||
+      { name: "Unknown", location: "Unknown" };
   });
 
 const handleUsers = cig("handleUsers", usernameSchema, (config) => {
-  config.setDescription("Handle weather notifications for users and create a nickname for each user");
+  config.setDescription(
+    "Handle weather notifications for users and create a nickname for each user",
+  );
   config.setModel("gpt-4o-2024-08-06");
   config.setLogLevel(1);
 })
@@ -56,13 +64,12 @@ const handleUsers = cig("handleUsers", usernameSchema, (config) => {
     })),
   }));
 
-
 // This can then be used like this
 
 (async () => {
   try {
     const result = await handleUsers.run({
-      usernames: ['john_doe', 'jane_smith', 'alice_wong']
+      usernames: ["john_doe", "jane_smith", "alice_wong"],
     });
     console.log("Result:", JSON.stringify(result, null, 2));
   } catch (error) {

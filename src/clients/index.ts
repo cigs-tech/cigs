@@ -1,2 +1,2 @@
-export * from './openai';
-export * from "./templator"
+export * from "./openai";
+export * from "./templator";

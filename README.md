@@ -1,26 +1,27 @@
-# cigs - Ai functions for Typescript
+# 🚬 cigs - Ai functions for Typescript
 
 ![GitHub top language](https://img.shields.io/github/languages/top/cigs-tech/cigs)
-[![npm version](https://img.shields.io/npm/v/@typeai/core)](https://www.npmjs.com/package/@typeai/core)
-[![CI](https://github.com/TypeAI-dev/typeai/actions/workflows/ci.yml/badge.svg)](https://github.com/TypeAI-dev/typeai/actions/workflows/ci.yml)
-[![GitHub license](https://img.shields.io/github/license/TypeAI-dev/typeai)](https://github.com/TypeAI-dev/typeai/blob/main/LICENSE.txt)
+![JSR Version](https://img.shields.io/jsr/v/@cigs/cigs)
+[![CI](https://github.com/cigs-tech/cigs/actions/workflows/ci.yml/badge.svg)](https://github.com/cigs-tech/cigs/actions/workflows/ci.yml)
+[![GitHub license](https://img.shields.io/github/license/cigs-tech/cigs)](https://github.com/cigs-tech/cigs/blob/main/LICENSE.txt)
 [![Twitter Follow](https://img.shields.io/twitter/follow/Jonovono?style=social)](https://twitter.com/Jonovono)
 
-My mom calls it lodash for making ai functions. Others call it graphql for functions. Anyways, cigs are composable intelligent generative snippets that give you new ways to build powerful apps making use of the latest in ai
+cigs are Ai typescript functions. they are composable intelligent generative snippets that offer new ways to build powerful applications leveraging the latest in Ai. Think of it as lodash for AI functions or GraphQL for code execution.
 
 ![cigs](https://i.imgur.com/QvJerh0.png)
 
-> [!CAUTION]
-> This library is still under development, I will be erring on the side of speed
-> Please join the Discord if you need help or something is broken
+> [!CAUTION] This library is still under development, I will be erring on the
+> side of speed Please join the Discord if you need help or something is broken
 
-## What cigs does:
+## What are cigs
 
-* Execute TypeScript methods using natural language inputs
-* Chain multiple Ai functions to create complex workflows
-* Provide helper functions for common tasks like classification, extraction, tool execution, and generation
-* Ensure type safety and structured outputs with Zod schemas
-* Call functions and get a specified response schema back
+What are cigs?
+
+- **Natural Language Execution**: Run TypeScript functions using natural language inputs.
+- **Composable Workflows**: Chain multiple AI functions to create complex workflows.
+- **Helper Functions**: Simplify common tasks like classification, extraction, and generation.
+- **Type Safety**: Ensure structured outputs with Zod schemas.
+- **Flexible Outputs**: Call functions and get responses in specified formats.
 
 Sounds weird, but with some examples it might make more sense
 
@@ -28,34 +29,52 @@ Sounds weird, but with some examples it might make more sense
 
 ```bash
 # Trying out jsr, I hate tsconfig and all that
-# If anyone reallys it as a npm package, let me know
+# If anyone wants it as a npm package, let me know
 
-# npm
+export OPENAI_API_KEY='...'    # currently required for core functionality
+```
+
+### npm
+
+```bash
 npx jsr add @cigs/cigs
+```
 
-# deno
+```ts
+import cig, { z } from "@cigs/cigs";
+```
+
+### deno
+
+```bash
 deno add @cigs/cigs
+```
+
+```ts
+import { cig, z } from "@cigs/cigs";
 ```
 
 ## Usage
 
 ### Call a typescript function with natural language
 
-> [!TIP]
-> Clone this repo and run this example with `npm run example:handler`
+> [!TIP] Clone this repo and run this example with `npm run example:handler`
 
-cigs wants to do a lot, but I think something cool about it is you can call a typescript function with natural language
+cigs wants to do a lot, but I think something cool about it is you can call a
+typescript function with natural language
 
 Super simple example, but say you have this function:
 
 ```ts
 function getUserCompliment(username: string) {
   const colorMap = {
-    'Alice': 'blue',
-    'Bob': 'green',
-    'Charlie': 'red'
+    "Alice": "blue",
+    "Bob": "green",
+    "Charlie": "red",
   };
-  return { color: colorMap[input.username as keyof typeof colorMap] || 'unknown' };
+  return {
+    color: colorMap[input.username as keyof typeof colorMap] || "unknown",
+  };
 }
 ```
 
@@ -63,8 +82,8 @@ You can call this function with natural language like this:
 
 ```ts
 const userInfoSchema = z.object({
-  username: z.string()
-})
+  username: z.string(),
+});
 
 // Define a cig to get a user's favorite color
 const getFavoriteColor = cig("getFavoriteColor", userInfoSchema)
@@ -76,10 +95,14 @@ const getFavoriteColor = cig("getFavoriteColor", userInfoSchema)
 // Usage example
 (async () => {
   try {
-    const result = await getFavoriteColor.run("What is the favorite color of Alice"); // { color: 'blue' }
+    const result = await getFavoriteColor.run(
+      "What is the favorite color of Alice",
+    ); // { color: 'blue' }
     console.log(result);
 
-    const result2 = await getFavoriteColor.run("What is the favorite color of Susan"); // { color: 'unknown' }
+    const result2 = await getFavoriteColor.run(
+      "What is the favorite color of Susan",
+    ); // { color: 'unknown' }
     console.log(result2);
 
     // You can also call that function with the specified input
@@ -94,18 +117,19 @@ const getFavoriteColor = cig("getFavoriteColor", userInfoSchema)
 
 ### Quick Start { simple }
 
-> [!TIP]
-> Clone this repo and run this example with `npm run example:simple`
+> [!TIP] Clone this repo and run this example with `npm run example:simple`
 
 ```ts
-import cig, { z } from '@cigs/cigs';
+import cig, { z } from "@cigs/cigs";
 
 const aiFunc = cig("ai-func", (config) => {
-  config.setDescription("You will a string of words respond with the most interesting word from them")
-  config.addExample("I love you so much!", "love")
-  config.addExample("This food is delicious", "delicious")
-  config.setModel('gpt-4o-2024-08-06');
-  config.setLogLevel(1)
+  config.setDescription(
+    "You will a string of words respond with the most interesting word from them",
+  );
+  config.addExample("I love you so much!", "love");
+  config.addExample("This food is delicious", "delicious");
+  config.setModel("gpt-4o-2024-08-06");
+  config.setLogLevel(1);
 });
 
 (async () => {
@@ -116,13 +140,11 @@ const aiFunc = cig("ai-func", (config) => {
     console.error("Error:", error);
   }
 })();
-
 ```
 
 ### Example: { Weather }
 
-> [!TIP]
-> Clone this repo and run this example with `npm run example:weather`
+> [!TIP] Clone this repo and run this example with `npm run example:weather`
 
 ```ts
 import cig, { z } from '@cigs/cigs';
@@ -233,55 +255,54 @@ const handleUsers = cig("handleUsers", usernameSchema, (config) => {
 
 #### Classification
 
-> [!TIP]
-> Clone this repo and run this example with `npm run example:classification`
+> [!TIP] Clone this repo and run this example with
+> `npm run example:classification`
 
 ```ts
-import cig, { z } from '@cigs/cigs';
+import cig, { z } from "@cigs/cigs";
 
 const sentimentInputSchema = z.object({
-  text: z.string()
-})
+  text: z.string(),
+});
 
 const sentiment = cig("sentiment-analyzer", sentimentInputSchema, (config) => {
-  config.setModel('gpt-4o-2024-08-06');
+  config.setModel("gpt-4o-2024-08-06");
   config.setLogLevel(1);
 })
-  .classify(['positive', 'negative', 'neutral'], (config) => {
-    config.addInstruction('Classify the sentiment of the input text');
-    config.addExample("I love you!", 'positive');
-    config.addExample("I hate you!", 'negative');
+  .classify(["positive", "negative", "neutral"], (config) => {
+    config.addInstruction("Classify the sentiment of the input text");
+    config.addExample("I love you!", "positive");
+    config.addExample("I hate you!", "negative");
   });
 
 (async () => {
   try {
     const result = await sentiment.run("I love you so much!");
-    console.log(result); // 'positive' 
+    console.log(result); // 'positive'
   } catch (error) {
     console.error("Error:", error);
   }
 })();
-
 ```
 
 #### Extraction
 
-> [!TIP]
-> Clone this repo and run this example with `npm run example:extraction`
+> [!TIP] Clone this repo and run this example with `npm run example:extraction`
 
 ```ts
 const personSchema = z.object({
   name: z.string(),
   age: z.number(),
-  gender: z.enum(['male', 'female', 'other']),
-  nickname: z.string().describe('a funny nickname for the person')
-})
-
+  gender: z.enum(["male", "female", "other"]),
+  nickname: z.string().describe("a funny nickname for the person"),
+});
 
 const extract = cig("person-extractor", (config) => {
-  config.setModel('gpt-4o-2024-08-06')
-  config.setLogLevel(1)
-  config.addInstruction('Extract the person from the input text and make up a funny nickname for them')
+  config.setModel("gpt-4o-2024-08-06");
+  config.setLogLevel(1);
+  config.addInstruction(
+    "Extract the person from the input text and make up a funny nickname for them",
+  );
 })
   .schema(personSchema);
 
@@ -297,33 +318,36 @@ const extract = cig("person-extractor", (config) => {
 
 #### Generation
 
-> [!TIP]
-> Clone this repo and run this example with `npm run example:generation`
+> [!TIP] Clone this repo and run this example with `npm run example:generation`
 
 ```ts
 const albumInputSchema = z.object({
-  genre: z.string()
-})
+  genre: z.string(),
+});
 
 const albumSchema = z.object({
   title: z.string(),
   artist: z.string(),
   year: z.number(),
   numTracks: z.number(),
-})
+});
 
 const generate = cig("album-generator", albumInputSchema, (config) => {
-  config.setModel('gpt-4o-2024-08-06');
+  config.setModel("gpt-4o-2024-08-06");
   config.setLogLevel(1);
-  config.addInstruction('Generate a list of fake albums that sound like they would be for a given genre');
+  config.addInstruction(
+    "Generate a list of fake albums that sound like they would be for a given genre",
+  );
 })
   .generate(albumSchema, 5, (config) => {
-    config.addInstruction('Generate a list of fake albums that sound like they would be for a given genre');
+    config.addInstruction(
+      "Generate a list of fake albums that sound like they would be for a given genre",
+    );
   });
 
 (async () => {
   try {
-    const result = await generate.run({ genre: 'rock' });
+    const result = await generate.run({ genre: "rock" });
     console.log(result); // { sentiment: 'positive' }
 
     // You can also call the functions with natural language
@@ -339,34 +363,34 @@ const generate = cig("album-generator", albumInputSchema, (config) => {
 ```json
 [
   {
-    title: 'Echoes of Reckoning',
-    artist: 'The Thunder Rockers',
-    year: 1994,
-    numTracks: 12
+    "title": "Echoes of Reckoning",
+    "artist": "The Thunder Rockers",
+    "year": 1994,
+    "numTracks": 12
   },
   {
-    title: 'Electric Daze',
-    artist: 'Sonic Vortex',
-    year: 2002,
-    numTracks: 14
+    "title": "Electric Daze",
+    "artist": "Sonic Vortex",
+    "year": 2002,
+    "numTracks": 14
   },
   {
-    title: 'Crimson Highways',
-    artist: 'Lunar Tides',
-    year: 1988,
-    numTracks: 10
+    "title": "Crimson Highways",
+    "artist": "Lunar Tides",
+    "year": 1988,
+    "numTracks": 10
   },
   {
-    title: 'Fury & Flames',
-    artist: 'Rogue Strikers',
-    year: 1979,
-    numTracks: 9
+    "title": "Fury & Flames",
+    "artist": "Rogue Strikers",
+    "year": 1979,
+    "numTracks": 9
   },
   {
-    title: 'Stone Symphony',
-    artist: 'The Granite Hearts',
-    year: 2017,
-    numTracks: 11
+    "title": "Stone Symphony",
+    "artist": "The Granite Hearts",
+    "year": 2017,
+    "numTracks": 11
   }
 ]
 ```
@@ -377,36 +401,40 @@ cigs allows you to chain multiple operations for more complex workflows:
 
 #### Chaining Operations
 
-When chaining operations, the output of one operation is passed as input to the next. Each step is strongly typed based on the output of the previous step.
+When chaining operations, the output of one operation is passed as input to the
+next. Each step is strongly typed based on the output of the previous step.
 
-> [!TIP]
-> Clone this repo and run this example with `npm run example:chaining`
+> [!TIP] Clone this repo and run this example with `npm run example:chaining`
 
 ```typescript
 const albumInputSchema = z.object({
-  genre: z.string()
-})
+  genre: z.string(),
+});
 
 const albumSchema = z.object({
   title: z.string(),
   artist: z.string(),
   year: z.number(),
   numTracks: z.number(),
-})
+});
 
 const finalSchema = z.object({
   title: z.string(),
   numTracks: z.number(),
   description: z.string(),
-})
+});
 
 const chained = cig("album-generator-detail", albumInputSchema, (config) => {
-  config.setModel('gpt-4o-2024-08-06');
+  config.setModel("gpt-4o-2024-08-06");
   config.setLogLevel(1);
-  config.addInstruction('Generate a list of fake albums that sound like they would be for a given genre');
+  config.addInstruction(
+    "Generate a list of fake albums that sound like they would be for a given genre",
+  );
 })
   .generate(albumSchema, 5, (config) => {
-    config.addInstruction('Generate a list of fake albums that sound like they would be for a given genre');
+    config.addInstruction(
+      "Generate a list of fake albums that sound like they would be for a given genre",
+    );
   })
   .handler(async (input) => {
     console.log(input);
@@ -415,13 +443,14 @@ const chained = cig("album-generator-detail", albumInputSchema, (config) => {
     );
   })
   .schema(finalSchema, (config) => {
-    config.addInstruction('Generate a description for the album that had the most tracks');
+    config.addInstruction(
+      "Generate a description for the album that had the most tracks",
+    );
   });
-
 
 (async () => {
   try {
-    const result = await chained.run({ genre: 'classical' });
+    const result = await chained.run({ genre: "classical" });
     console.log(result);
   } catch (error) {
     console.error("Error:", error);
@@ -439,30 +468,32 @@ const chained = cig("album-generator-detail", albumInputSchema, (config) => {
 
 #### Uses
 
-This essentially is a easy way to use ChatGPT function calling / tools. You can define cigs that use other cigs and pass them in as tools
+This essentially is a easy way to use ChatGPT function calling / tools. You can
+define cigs that use other cigs and pass them in as tools
 
-> [!TIP]
-> Clone this repo and run this example with `npm run example:uses`
+> [!TIP] Clone this repo and run this example with `npm run example:uses`
 
 ```ts
 const userInfoSchema = z.object({
-  username: z.string()
-})
+  username: z.string(),
+});
 
 const colorSchema = z.object({
-  color: z.string()
-})
+  color: z.string(),
+});
 
 // Define a cig to get a user's favorite color
 const getFavoriteColor = cig("getFavoriteColor", userInfoSchema)
   .handler(async (input) => {
     // Simulated database lookup
     const colorMap = {
-      'alice': 'blue',
-      'bob': 'green',
-      'charlie': 'red'
+      "alice": "blue",
+      "bob": "green",
+      "charlie": "red",
     };
-    return { color: colorMap[input.username as keyof typeof colorMap] || 'unknown' };
+    return {
+      color: colorMap[input.username as keyof typeof colorMap] || "unknown",
+    };
   });
 
 // Define a cig to get a compliment based on a color
@@ -470,12 +501,13 @@ const getColorCompliment = cig("getColorCompliment", colorSchema)
   .handler(async (input) => {
     // Simple color-based compliment generator
     const compliments = {
-      'blue': 'You have great taste!',
-      'green': 'Youre so in tune with nature!',
-      'red': 'Youre bold and confident!'
+      "blue": "You have great taste!",
+      "green": "Youre so in tune with nature!",
+      "red": "Youre bold and confident!",
     };
     return {
-      compliment: compliments[input.color as keyof typeof compliments] || 'Youre unique!'
+      compliment: compliments[input.color as keyof typeof compliments] ||
+        "Youre unique!",
     };
   });
 
@@ -486,38 +518,55 @@ const getUserCompliment = cig("getUserCompliment", userInfoSchema)
 // Usage example
 (async () => {
   try {
-    const result = await getUserCompliment.run({ username: 'alice' }); // Alice's favorite color is blue, and her choice is complimented with: "You have great taste!"
+    const result = await getUserCompliment.run({ username: "alice" }); // Alice's favorite color is blue, and her choice is complimented with: "You have great taste!"
     console.log(result);
-    // Expected output: { username: 'alice', favoriteColor: 'blue', compliment: 'You have great taste!' }
   } catch (error) {
     console.error("Error:", error);
   }
 })();
 ```
 
+### Operations
+
+cigs supports various operations that can be chained together:
+
+- **schema**: Transform the input to a specified output using a Zod schema
+- **generate**: Generate multiple outputs based on the schema
+- **classify**: Classify the input into predefined categories
+- **handler**: Apply a custom handler function
+- **uses**: Execute a series of tools (other cigs instances)
+- **log**: Add logging without modifying the data to intermediate steps
+
 ## Vision and Future Direction
 
-cigs aims to become a comprehensive framework for building Ai powered applications. Our roadmap includes:
+cigs aims to become a comprehensive framework for building Ai powered
+applications. Our roadmap includes:
 
-1. Multi-provider support: Integrate with various AI providers beyond OpenAI.
-2. Enhanced modality support: Expand capabilities to handle image, audio, and video inputs.
-3. Complex interactions: Develop tools for creating chatbots, autonomous agents, and multi-step reasoning systems.
-4. Deployment and monitoring: Provide easy-to-use tools for deploying, managing, and monitoring cigs in production environments.
-5. Performance optimization: Implement caching, batching, and other performance enhancements. For example, after x amount of usage, instead of hitting openai api we can train a model on the usage and serve that.
-6. Community-driven development: Foster an ecosystem of shared cigs that anyone can use.
+1. **Multi-provider support**: Integrate with various AI providers beyond OpenAI.
+2. **Enhanced modality support**: Expand capabilities to handle image, audio, and
+   video inputs.
+3. **Complex interactions**: Develop tools for creating chatbots, autonomous agents,
+   and multi-step reasoning systems.
+4. **Deployment and monitoring**: Provide easy-to-use tools for deploying, managing,
+   and monitoring cigs in production environments. Something like Firebase functions, Zapier, Replicate etc
+5. **Performance optimization**: Implement caching, batching, and other performance
+   enhancements. For example, after x amount of usage, instead of hitting openai
+   api we can train a model on the usage and serve that.
+6. **Community-driven development**: Foster an ecosystem of shared cigs that anyone
+   can use.
 7. What would you like to see?
 
 ## Get in touch
 
-💡 **Feature idea?** share it in [our Discord](https://discord.com/invite/Kgw4HpcuYG).
-🐛 **Found a bug?** feel free to [open an issue](https://github.com/cigs-tech/cigs/issues/new/choose).
+💡 **Feature idea?** share it in [our Discord](https://discord.com/invite/Kgw4HpcuYG)
+🐛 **Found a bug?** feel free to [open an issue](https://github.com/cigs-tech/cigs/issues/new/choose)
 
 ## Inspiration
 
-* [instructor](https://github.com/jxnl/instructor)
-* [askmarvin](https://www.askmarvin.ai)
-* [fructose](https://github.com/bananaml/fructose)
-* [wundergraph](https://github.com/wundergraph/wundergraph)
+- [instructor](https://github.com/jxnl/instructor)
+- [askmarvin](https://www.askmarvin.ai)
+- [fructose](https://github.com/bananaml/fructose)
+- [wundergraph](https://github.com/wundergraph/wundergraph)
 
 ## License
 

@@ -1,6 +1,6 @@
-import { ZodSchema } from 'zod';
-import { zodResponseFormat } from 'openai/helpers/zod';
-import { openAIClient } from "../clients"
+import { ZodSchema } from "zod";
+import { zodResponseFormat } from "openai/helpers/zod";
+import { openAIClient } from "../clients";
 
 /**
  * Processes the input by getting a structured response according to the provided Zod schema using OpenAI's API.
@@ -22,9 +22,9 @@ import { openAIClient } from "../clients"
  *
  * @remarks
  * This function uses OpenAI's API to process the input string according to the provided `schema`. The input is sent to the model specified in the `options`, and the response is validated against the schema using the `zodResponseFormat`.
- * 
+ *
  * If the parsing of the model's output fails according to the schema, an error is thrown.
- * 
+ *
  * @example
  * ```typescript
  * const schema = z.object({
@@ -32,9 +32,9 @@ import { openAIClient } from "../clients"
  *   name: z.string(),
  *   age: z.number(),
  * });
- * 
+ *
  * const input = "id: 123, name: John Doe, age: 30";
- * 
+ *
  * const result = await getStructuredResponse(input, schema, "Parse user information", "UserInfo", { model: "gpt-4o-2024-08-06" });
  * console.log(result); // Output: { id: "123", name: "John Doe", age: 30 }
  * ```
@@ -44,9 +44,10 @@ export async function getStructuredResponse<T>(
   schema: ZodSchema<T>,
   description?: string,
   name?: string,
-  options: { model?: string, temperature?: number, maxTokens?: number } = {},
+  options: { model?: string; temperature?: number; maxTokens?: number } = {},
 ): Promise<T> {
-  const { model = 'gpt-4o-2024-08-06', temperature = 1, maxTokens = null } = options;
+  const { model = "gpt-4o-2024-08-06", temperature = 1, maxTokens = null } =
+    options;
 
   try {
     const completion = await openAIClient.beta.chat.completions.parse({
@@ -54,14 +55,20 @@ export async function getStructuredResponse<T>(
       temperature,
       max_tokens: maxTokens,
       messages: [
-        { role: 'system', content: description || 'Process the input according to the provided schema.' },
-        { role: 'user', content: input },
+        {
+          role: "system",
+          content: description ||
+            "Process the input according to the provided schema.",
+        },
+        { role: "user", content: input },
       ],
-      response_format: zodResponseFormat(schema, name || 'result'),
+      response_format: zodResponseFormat(schema, name || "result"),
     });
 
     if (completion.choices[0].message.parsed === null) {
-      throw new Error("Failed to parse the model's output according to the schema");
+      throw new Error(
+        "Failed to parse the model's output according to the schema",
+      );
     }
 
     return completion.choices[0].message.parsed;

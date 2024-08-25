@@ -1,8 +1,8 @@
-import { describe, it, expect } from 'vitest';
-import { z } from 'zod';
-import { getStructuredResponse } from '../src/utils';
+import { describe, expect, it } from "vitest";
+import { z } from "zod";
+import { getStructuredResponse } from "../src/utils";
 
-describe('getStructuredResponse', () => {
+describe("getStructuredResponse", () => {
   const mockSchema = z.object({
     id: z.string(),
     name: z.string(),
@@ -11,7 +11,7 @@ describe('getStructuredResponse', () => {
 
   const mockInput = "id: 123, name: John Doe, age: 30";
 
-  it('should process input and return structured response', async () => {
+  it("should process input and return structured response", async () => {
     const result = await getStructuredResponse(mockInput, mockSchema);
 
     expect(result).toEqual(expect.objectContaining({
@@ -19,14 +19,14 @@ describe('getStructuredResponse', () => {
       name: expect.any(String),
       age: expect.any(Number),
     }));
-  }, 10000);  // Increased timeout for API call
+  }, 10000); // Increased timeout for API call
 
-  it('should use provided description and name', async () => {
+  it("should use provided description and name", async () => {
     const result = await getStructuredResponse(
       mockInput,
       mockSchema,
       "Parse user information with id as a number",
-      "UserInfo"
+      "UserInfo",
     );
 
     expect(result).toEqual(expect.objectContaining({
@@ -36,13 +36,13 @@ describe('getStructuredResponse', () => {
     }));
   }, 10000);
 
-  it('should use custom model and temperature', async () => {
+  it("should use custom model and temperature", async () => {
     const result = await getStructuredResponse(
       mockInput,
       mockSchema,
       undefined,
       undefined,
-      { model: 'gpt-4o-mini', temperature: 0.5 }
+      { model: "gpt-4o-mini", temperature: 0.5 },
     );
 
     expect(result).toEqual(expect.objectContaining({
@@ -52,14 +52,13 @@ describe('getStructuredResponse', () => {
     }));
   }, 10000);
 
-
-  it('should use provided maxTokens', async () => {
+  it("should use provided maxTokens", async () => {
     const result = await getStructuredResponse(
       mockInput,
       mockSchema,
       undefined,
       undefined,
-      { maxTokens: 100 }
+      { maxTokens: 100 },
     );
 
     expect(result).toEqual(expect.objectContaining({
@@ -69,7 +68,7 @@ describe('getStructuredResponse', () => {
     }));
   }, 10000);
 
-  it('should fail on complex schemas', async () => {
+  it("should fail on complex schemas", async () => {
     const complexSchema = z.object({
       user: z.object({
         id: z.string(),
@@ -88,5 +87,5 @@ describe('getStructuredResponse', () => {
 
     await expect(getStructuredResponse(complexInput, complexSchema))
       .rejects.toThrow(/Failed to process input/);
-  }, 15000);  // Increased timeout for more complex processing
+  }, 15000); // Increased timeout for more complex processing
 });

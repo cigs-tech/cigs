@@ -1,17 +1,17 @@
-import cig, { z } from '../src/index';
+import cig, { z } from "../src/index";
 
 const sentimentInputSchema = z.object({
-  text: z.string()
-})
+  text: z.string(),
+});
 
 const sentiment = cig("sentiment-analyzer", sentimentInputSchema, (config) => {
-  config.setModel('gpt-4o-2024-08-06');
+  config.setModel("gpt-4o-2024-08-06");
   config.setLogLevel(1);
 })
-  .classify(['positive', 'negative', 'neutral'], (config) => {
-    config.addInstruction('Classify the sentiment of the input text');
-    config.addExample("I love you!", 'positive');
-    config.addExample("I hate you!", 'negative');
+  .classify(["positive", "negative", "neutral"], (config) => {
+    config.addInstruction("Classify the sentiment of the input text");
+    config.addExample("I love you!", "positive");
+    config.addExample("I hate you!", "negative");
   });
 
 (async () => {

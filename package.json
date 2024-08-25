@@ -4,6 +4,7 @@
   "description": "Call typescript methods with natural language and get the response back in specified structure",
   "main": "src/index.js",
   "scripts": {
+    "format": "deno fmt",
     "test": "vitest",
     "test:loud": "vitest --reporter=basic --disable-console-intercept",
     "publish": "npx jsr publish --dry-run",

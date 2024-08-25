@@ -1,19 +1,27 @@
-import cig, { z } from '../src/index';
+import cig, { z } from "../src/index";
 
 const personSchema = z.object({
   name: z.string(),
   age: z.number(),
-  gender: z.enum(['male', 'female', 'other']),
-  nickname: z.string().describe('a funny nickname for the person')
-})
-
+  gender: z.enum(["male", "female", "other"]),
+  nickname: z.string().describe("a funny nickname for the person"),
+});
 
 const extract = cig("person-extractor", (config) => {
-  config.setModel('gpt-4o-2024-08-06')
-  config.setLogLevel(1)
-  config.addInstruction('Extract the person from the input text and make up a funny nickname for them')
+  config.setModel("gpt-4o-2024-08-06");
+  config.setLogLevel(1);
+  config.addInstruction(
+    "Extract the person from the input text and make up a funny nickname for them",
+  );
 })
-  .schema(personSchema);
+  .schema(personSchema, (config) => {
+    config.addExample("His name is John and he is 25 years old", {
+      name: "John",
+      age: 25,
+      gender: "male",
+      nickname: "Johnny",
+    });
+  });
 
 (async () => {
   try {
