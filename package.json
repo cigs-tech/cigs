@@ -15,7 +15,8 @@
     "example:generation": "npx ts-node examples/testGeneration.ts",
     "example:chaining": "npx ts-node examples/testChaining.ts",
     "example:handler": "npx ts-node examples/testHandler.ts",
-    "example:uses": "npx ts-node examples/testUses.ts"
+    "example:uses": "npx ts-node examples/testUses.ts",
+    "example:super-simple": "npx ts-node examples/testSuperSimple.ts"
   },
   "author": "Jordan Howlett <jordan@howlett.io>",
   "license": "MIT",

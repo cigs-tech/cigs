@@ -6,26 +6,28 @@
 [![GitHub license](https://img.shields.io/github/license/cigs-tech/cigs)](https://github.com/cigs-tech/cigs/blob/main/LICENSE.txt)
 [![Twitter Follow](https://img.shields.io/twitter/follow/Jonovono?style=social)](https://twitter.com/Jonovono)
 
-cigs are Ai typescript functions. they are composable intelligent generative
-snippets that offer new ways to build powerful applications leveraging the
-latest in Ai. Think of it as lodash for AI functions or GraphQL for code
-execution.
+cigs are Ai typescript functions. They are composable intelligent generative snippets that offer new ways to build powerful applications leveraging the latest in Ai. cigs is the lodash for AI functions or GraphQL for code execution.
+
+Think of it like a combination of [instructor](https://github.com/jxnl/instructor), [askmarvin](https://www.askmarvin.ai), and [fructose](https://github.com/bananaml/fructose), but with a few main differences:
+
+- **Uses OpenAI structured outputs**: Structured outputs simplify a lot of the logic of these libraries!
+- **Written in TypeScript**: Lots of cool libraries for python, but TS is lacking :(
+- **Chainable**: Easily chain multiple cigs together to create complex workflows
+- **Type Safe**: Use Zod schemas to ensure the output of your cigs is always correct
+- **Flexible**: Call cigs with natural language or with structured inputs
+- **Dynamic function response**: You can define a typescript function with a specific input schema. You can then call that function with the input or natural language and specify the desired output schema at run time. We will use OpenAI structured outputs to map the function response to the desired output schema. So you can have one function be called from different places all with different type-safe outputs
 
 ![cigs](https://i.imgur.com/QvJerh0.png)
 
-> [!CAUTION] This library is still under development, I will be erring on the
-> side of speed Please join the Discord if you need help or something is broken
+> [!CAUTION]
+> This library is still under development
+> I will be erring on the side of speed Please join the Discord if you need help or something is broken
 
 ## What are cigs
 
-What are cigs?
-
-- **Natural Language Execution**: Run TypeScript functions using natural
-  language inputs.
-- **Composable Workflows**: Chain multiple AI functions to create complex
-  workflows.
-- **Helper Functions**: Simplify common tasks like classification, extraction,
-  and generation.
+- **Natural Language Execution**: Run TypeScript functions using natural language inputs.
+- **Composable Workflows**: Chain multiple AI functions to create complex workflows.
+- **Helper Functions**: Simplify common tasks like classification, extraction, and generation.
 - **Type Safety**: Ensure structured outputs with Zod schemas.
 - **Flexible Outputs**: Call functions and get responses in specified formats.
 
@@ -34,15 +36,14 @@ Sounds weird, but with some examples it might make more sense
 ## Installation
 
 ```bash
-# Trying out jsr, I hate tsconfig and all that
-# If anyone wants it as a npm package, let me know
-
 export OPENAI_API_KEY='...'    # currently required for core functionality
 ```
 
-### npm
+### npm / node
 
 ```bash
+# Trying out jsr, I hate tsconfig and all that
+# If anyone wants it as a npm package, let me know
 npx jsr add @cigs/cigs
 ```
 
@@ -60,14 +61,35 @@ deno add @cigs/cigs
 import { cig, z } from "@cigs/cigs";
 ```
 
+## Current Supported Operations
+
+cigs supports various operations that can be chained together:
+
+- **schema**: Transform the input to a specified output using a Zod schema
+- **generate**: Generate multiple outputs based on the schema
+- **classify**: Classify the input into predefined categories
+- **handler**: Apply a custom handler function
+- **uses**: Execute a series of tools (other cigs instances)
+- **log**: Add logging without modifying the data to intermediate steps
+- ***What else should we support?***
+
+cig supports the following configs
+
+- **setModel**: Set the OpenAI model to use
+- **setLogLevel**: Set the log level. 1 will show all the logs, 2 will show less etc
+- **setDescription**: Set the description of the cig. This will be passed to OpenAI
+- **addInstruction**: Add an instruction to the cig. This will be passed to OpenAI as the system prompt
+- **addExample**: Add an example to the cig. This will be passed to OpenAI to help tune the response
+- **What else should we support?**
+
 ## Usage
 
 ### Call a typescript function with natural language
 
-> [!TIP] Clone this repo and run this example with `npm run example:handler`
+> [!TIP]
+> Clone this repo and run this example with `npm run example:handler`
 
-cigs wants to do a lot, but I think something cool about it is you can call a
-typescript function with natural language
+cigs wants to do a lot, but I think something cool about it is you can call a typescript function with natural language
 
 Super simple example, but say you have this function:
 
@@ -121,9 +143,101 @@ const getFavoriteColor = cig("getFavoriteColor", userInfoSchema)
 })();
 ```
 
+### Initializing
+
+There are a few ways to initialize a cigs instance
+
+```ts
+import cig, { z } from "@cigs/cigs";
+
+const cig = cig("NAME", INPUT_ZOD_SCHEMA, CONFIGURATOR)
+```
+
+No configuration
+
+```ts
+// In the simplest case, you can just pass the name of the cig
+const simplestCig = cig("my-cig")
+
+// This won't do much of anything, but you can call it with natural language and it will return essentially just the raw input of OpenAI `openAIClient.chat.completions.create` call
+
+const output = await simplestCig.run("Give me a random word");
+// Serendipity
+```
+
+Just with a input schema. The input schema makes it so you can control the input of the cig. You are still able to call it with natural language and it will map it to the input schema. This is more useful when combined with handler functions, but can be used on its own
+
+```ts
+const simpleZodSchema = z.object({
+  word: z.string(),
+  command: z.string(),
+});
+
+const cigWithSchema = cig("my-cig", simpleZodSchema);
+
+const result = await cigWithSchema.run({ word: "hello", command: "translate to french" });
+// -> {"word":"hello","translation":"bonjour"}
+// this output isn't super helpful. Its a string, so not a typed object
+// It's just trying to match the input as best as possible. We will get better below
+
+const result2 = await cigWithSchema.run("translate hello to french");
+// -> "Hello" in French is "Bonjour."
+```
+
+Just with configuration
+
+```ts
+const cigWithConfig = cig("my-cig", (config) => {
+  config.setModel("gpt-4o-2024-08-06");
+  config.setLogLevel(1);
+  config.setDescription("This is a test cig");
+  config.addInstruction("Respond with the given phrase in french");
+  config.addExample("I love you so much!", "Je t'aime");
+});
+
+const result = await cigWithConfig.run("wow this library is so cool");
+// -> Wow, cette bibliothèque est tellement cool.
+```
+
+With everything
+
+```ts
+const simpleZodSchema = z.object({
+  words: z.array(z.string()),
+});
+
+const cigWithConfig = cig("my-cig", simpleZodSchema, (config) => {
+  config.setModel("gpt-4o-2024-08-06");
+  config.setLogLevel(1);
+  config.addInstruction("Given a list of words, return a sentence using all of them");
+});
+
+// Now run it:
+const result = await cigWithConfig.run({ words: ["Dinosaur", "Typescript", "AI"] });
+// -> Dinosaur enthusiasts have started using Typescript to create interactive AI exhibits in museums worldwide.
+
+// And just like everything, you can also call it with natural language
+const result = await cigWithConfig.run("please use the words Dinosaur, Typescript, and AI");
+// It will be processed and mapped to the input schema
+// {
+//   context: 'Processed string input',
+//   result: {
+//     words: [
+//       'Dinosaur',
+//       'Typescript',
+//       'AI'
+//     ]
+//   }
+// }
+// -> In an imaginative world, a dinosaur adeptly coded in TypeScript, creating an advanced AI to predict meteor showers.
+```
+
+So ya, it's pretty flexible and can handle a lot of different use cases. This doesn't show off the true power. It gets really fun when you start chaining cigs together and controlling the outputs.
+
 ### Quick Start { simple }
 
-> [!TIP] Clone this repo and run this example with `npm run example:simple`
+> [!TIP] 
+> Clone this repo and run this example with `npm run example:simple`
 
 ```ts
 import cig, { z } from "@cigs/cigs";
@@ -150,7 +264,8 @@ const aiFunc = cig("ai-func", (config) => {
 
 ### Example: { Weather }
 
-> [!TIP] Clone this repo and run this example with `npm run example:weather`
+> [!TIP]
+> Clone this repo and run this example with `npm run example:weather`
 
 ```ts
 import cig, { z } from '@cigs/cigs';
@@ -177,7 +292,7 @@ async function fetchWeatherData(location: string): Promise<{ temperature: number
 }
 
 const getWeatherData = cig("getWeatherData", locationSchema)
-  #  input will receive {location: ""}
+  //input will receive {location: ""}
   .handler(async (input) => {
     console.log("GetWeatherData", input, input.location);
     const data = await fetchWeatherData(input.location);
@@ -187,7 +302,7 @@ const getWeatherData = cig("getWeatherData", locationSchema)
 const getUserInfo = cig("getUserInfo", userInfoSchema)
   .handler(async (input) => {
     console.log("GetUserInfo", input);
-    # Simulated user info retrieval
+    //Simulated user info retrieval
     const userInfo = {
       'john_doe': { name: 'John Doe', location: 'New York' },
       'jane_smith': { name: 'Jane Smith', location: 'London' },
@@ -215,7 +330,6 @@ const handleUsers = cig("handleUsers", usernameSchema, (config) => {
 
 
 // This can then be used like this
-
 (async () => {
   try {
     const result = await handleUsers.run({
@@ -261,8 +375,8 @@ const handleUsers = cig("handleUsers", usernameSchema, (config) => {
 
 #### Classification
 
-> [!TIP] Clone this repo and run this example with
-> `npm run example:classification`
+> [!TIP]
+> Clone this repo and run this example with `npm run example:classification`
 
 ```ts
 import cig, { z } from "@cigs/cigs";
@@ -293,7 +407,8 @@ const sentiment = cig("sentiment-analyzer", sentimentInputSchema, (config) => {
 
 #### Extraction
 
-> [!TIP] Clone this repo and run this example with `npm run example:extraction`
+> [!TIP]
+> Clone this repo and run this example with `npm run example:extraction`
 
 ```ts
 const personSchema = z.object({
@@ -324,7 +439,8 @@ const extract = cig("person-extractor", (config) => {
 
 #### Generation
 
-> [!TIP] Clone this repo and run this example with `npm run example:generation`
+> [!TIP]
+> Clone this repo and run this example with `npm run example:generation`
 
 ```ts
 const albumInputSchema = z.object({
@@ -407,10 +523,10 @@ cigs allows you to chain multiple operations for more complex workflows:
 
 #### Chaining Operations
 
-When chaining operations, the output of one operation is passed as input to the
-next. Each step is strongly typed based on the output of the previous step.
+When chaining operations, the output of one operation is passed as input to the next. Each step is strongly typed based on the output of the previous step.
 
-> [!TIP] Clone this repo and run this example with `npm run example:chaining`
+> [!TIP]
+> Clone this repo and run this example with `npm run example:chaining`
 
 ```typescript
 const albumInputSchema = z.object({
@@ -477,7 +593,8 @@ const chained = cig("album-generator-detail", albumInputSchema, (config) => {
 This essentially is a easy way to use ChatGPT function calling / tools. You can
 define cigs that use other cigs and pass them in as tools
 
-> [!TIP] Clone this repo and run this example with `npm run example:uses`
+> [!TIP]
+> Clone this repo and run this example with `npm run example:uses`
 
 ```ts
 const userInfoSchema = z.object({
@@ -532,43 +649,29 @@ const getUserCompliment = cig("getUserCompliment", userInfoSchema)
 })();
 ```
 
-### Operations
-
-cigs supports various operations that can be chained together:
-
-- **schema**: Transform the input to a specified output using a Zod schema
-- **generate**: Generate multiple outputs based on the schema
-- **classify**: Classify the input into predefined categories
-- **handler**: Apply a custom handler function
-- **uses**: Execute a series of tools (other cigs instances)
-- **log**: Add logging without modifying the data to intermediate steps
-
 ## Vision and Future Direction
 
 cigs aims to become a comprehensive framework for building Ai powered
 applications. Our roadmap includes:
 
-1. **Multi-provider support**: Integrate with various AI providers beyond
-   OpenAI.
-2. **Enhanced modality support**: Expand capabilities to handle image, audio,
-   and video inputs.
-3. **Complex interactions**: Develop tools for creating chatbots, autonomous
-   agents, and multi-step reasoning systems.
-4. **Deployment and monitoring**: Provide easy-to-use tools for deploying,
-   managing, and monitoring cigs in production environments. Something like
-   Firebase functions, Zapier, Replicate etc
-5. **Performance optimization**: Implement caching, batching, and other
-   performance enhancements. For example, after x amount of usage, instead of
-   hitting openai api we can train a model on the usage and serve that.
-6. **Community-driven development**: Foster an ecosystem of shared cigs that
-   anyone can use.
+1. **Multi-provider support**: Integrate with various AI providers beyond OpenAI.
+2. **Enhanced modality support**: Expand capabilities to handle image, audio, and video inputs.
+3. **Complex interactions**: Develop tools for creating chatbots, autonomous agents, and multi-step reasoning systems.
+4. **Deployment and monitoring**: Provide easy-to-use tools for deploying, managing, and monitoring cigs in production environments and seeing cost etc. Something like Firebase functions, Zapier, Replicate etc
+5. **Performance optimization**: Implement caching, batching, and other performance enhancements. For example, after x amount of usage, instead of hitting openai api we can train a model on the usage and serve that.
+6. **Community-driven development**: Foster an ecosystem of shared cigs that anyone can use.
 7. What would you like to see?
+
+## Todos
+
+- [ ] Add a way to pass in a custom openai client
+- [ ] Track cost
+- [ ] Control the settings of the model better like temperature, top_p, etc
 
 ## Get in touch
 
-💡 **Feature idea?** share it in
-[our Discord](https://discord.com/invite/Kgw4HpcuYG) 🐛 **Found a bug?** feel
-free to [open an issue](https://github.com/cigs-tech/cigs/issues/new/choose)
+💡 **Feature idea?** share it in [our Discord](https://discord.com/invite/Kgw4HpcuYG) 
+🐛 **Found a bug?** feelfree to [open an issue](https://github.com/cigs-tech/cigs/issues/new/choose)
 
 ## Inspiration
 

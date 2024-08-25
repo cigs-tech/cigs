@@ -7,6 +7,7 @@ import {
   formatClassifyPrompt,
   formatExtractPrompt,
   formatGeneratePrompt,
+  formatDefaultPrompt,
 } from "./prompts/index.ts";
 import type {
   ChainSmokerConfig,
@@ -110,7 +111,7 @@ export class Configurator<T> {
 export class ChainSmoker<I = any, O = I> {
   private operations: Operation<any, any>[] = [];
   private inputSchema: ZodSchema<I> | null;
-  private outputSchema: ZodSchema<O>;
+  private outputSchema: ZodSchema<O> | null;
   private logger: Logger<CustomLogObj>;
   public config: ChainSmokerConfig;
 
@@ -127,7 +128,8 @@ export class ChainSmoker<I = any, O = I> {
     config: Partial<ChainSmokerConfig>,
   ) {
     this.inputSchema = inputSchema;
-    this.outputSchema = inputSchema as unknown as ZodSchema<O>;
+    // this.outputSchema = inputSchema as unknown as ZodSchema<O>;
+    this.outputSchema = null;
     this.config = {
       name,
       logLevel: config.logLevel ?? 5,
@@ -210,6 +212,7 @@ export class ChainSmoker<I = any, O = I> {
       },
     );
     newChainSmoker.operations = [...this.operations, operation];
+    newChainSmoker.outputSchema = schema;
     return newChainSmoker;
   }
 
@@ -275,17 +278,35 @@ export class ChainSmoker<I = any, O = I> {
   }
 
   private async defaultOperation(input: string): Promise<string> {
-    this.logger.debug({ context: "Using default operation", input });
+    const config = this.config;
+
+    this.logger.debug({
+      operation: "defaultOperation",
+      context: "init",
+      input,
+      instruction: config.instruction,
+      examples: config.examples,
+    });
+
+    const promptContext = {
+      data: input,
+      instructions: config.instruction,
+      examples: config.examples,
+    };
+
+    const prompt = await formatDefaultPrompt(promptContext);
+
+    this.logger.trace({
+      operation: "defaultOperation",
+      context: "extracted prompt",
+      prompt,
+    });
+
     const response = await openAIClient.chat.completions.create({
       model: this.config.model,
-      messages: [
-        {
-          role: "system",
-          content: this.config.description || "Process the following input.",
-        },
-        { role: "user", content: input },
-      ],
+      messages: [{ role: "user", content: prompt }],
     });
+
     return response.choices[0]?.message?.content || "";
   }
 
@@ -476,8 +497,10 @@ export class ChainSmoker<I = any, O = I> {
     }
 
     if (this.operations.length === 0) {
+      const processedInput = typeof input === "string" ? input : JSON.stringify(input);
+      console.log("no operations", processedInput);
       // If no operations are specified, use a default operation
-      return this.defaultOperation(result as string) as unknown as O;
+      return this.defaultOperation(processedInput) as unknown as O;
     }
 
     for (let i = 0; i < this.operations.length; i++) {
@@ -487,7 +510,8 @@ export class ChainSmoker<I = any, O = I> {
       this.logger.debug({ context: `Operation ${i + 1} Output`, data: result });
     }
 
-    return result as O;
+    // return result as O;
+    return this.outputSchema ? this.outputSchema.parse(result) : result as O;
   }
 }
 
@@ -509,7 +533,8 @@ type ChainSmokerBuilder = {
     name: string,
     inputSchema: ZodSchema<I>,
     configurator?: (config: Configurator<I>) => void,
-  ): ChainSmoker<I, I>;
+    // ): ChainSmoker<I, I>;
+  ): ChainSmoker<I, any>;
 
   /**
    * Creates a ChainSmoker without a specified input schema.
@@ -549,27 +574,52 @@ type ChainSmokerBuilder = {
  * });
  * ```
  */
+// export const cig: ChainSmokerBuilder = (<I>(
+//   name: string,
+//   inputSchemaOrConfigurator?:
+//     | ZodSchema<I>
+//     | ((config: Configurator<any>) => void),
+//   configurator?: (config: Configurator<I>) => void,
+// ): ChainSmoker<I, I> | ChainSmoker<any, any> => {
+//   let inputSchema: ZodSchema<I> | null = null;
+//   let config: Partial<ChainSmokerConfig> = {};
+
+//   if (inputSchemaOrConfigurator instanceof ZodType) {
+//     inputSchema = inputSchemaOrConfigurator;
+//   } else if (typeof inputSchemaOrConfigurator === "function") {
+//     configurator = inputSchemaOrConfigurator;
+//   }
+
+//   if (configurator) {
+//     const cfg = new Configurator<I>();
+//     configurator(cfg);
+//     config = cfg.getConfig();
+//   }
+
+//   return new ChainSmoker<I, I>(name, inputSchema, config);
+// }) as ChainSmokerBuilder;
 export const cig: ChainSmokerBuilder = (<I>(
   name: string,
   inputSchemaOrConfigurator?:
     | ZodSchema<I>
     | ((config: Configurator<any>) => void),
   configurator?: (config: Configurator<I>) => void,
-): ChainSmoker<I, I> | ChainSmoker<any, any> => {
+): ChainSmoker<I, any> | ChainSmoker<any, any> => {
   let inputSchema: ZodSchema<I> | null = null;
   let config: Partial<ChainSmokerConfig> = {};
 
   if (inputSchemaOrConfigurator instanceof ZodType) {
     inputSchema = inputSchemaOrConfigurator;
+    if (configurator) {
+      const cfg = new Configurator<I>();
+      configurator(cfg);
+      config = cfg.getConfig();
+    }
   } else if (typeof inputSchemaOrConfigurator === "function") {
-    configurator = inputSchemaOrConfigurator;
-  }
-
-  if (configurator) {
-    const cfg = new Configurator<I>();
-    configurator(cfg);
+    const cfg = new Configurator<any>();
+    inputSchemaOrConfigurator(cfg);
     config = cfg.getConfig();
   }
 
-  return new ChainSmoker<I, I>(name, inputSchema, config);
+  return new ChainSmoker<I, any>(name, inputSchema, config);
 }) as ChainSmokerBuilder;
