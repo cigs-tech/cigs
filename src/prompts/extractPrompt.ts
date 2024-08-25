@@ -1,6 +1,6 @@
 import { templator } from "../clients/templator";
-import { Example } from "../types";
-import { ZodSchema } from "zod";
+import type { Example } from "../types";
+import type { ZodSchema } from "zod";
 
 export interface ExtractPromptContext<T> {
   data: string;

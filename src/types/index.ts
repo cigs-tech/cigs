@@ -1,4 +1,4 @@
-import { ILogObj } from "tslog";
+import type { ILogObj } from "tslog";
 
 export type LogLevel = number;
 

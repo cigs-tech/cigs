@@ -1,6 +1,6 @@
 import { openAIClient } from "../clients/openai";
 import { createTools } from "./createTools";
-import { ChainSmoker } from "../smoke";
+import type { ChainSmoker } from "../smoke";
 
 /**
  * Executes a series of tools provided in the `uses` array on the raw text input.

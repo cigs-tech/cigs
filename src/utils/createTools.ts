@@ -1,5 +1,5 @@
 import { zodFunction } from "openai/helpers/zod";
-import { ChainSmoker } from "../smoke";
+import type { ChainSmoker } from "../smoke";
 
 /**
  * Creates an array of tools from an array of `AIFunction`s to be used in the execution process.

@@ -1,4 +1,4 @@
-import { ZodSchema } from "zod";
+import type { ZodSchema } from "zod";
 import { getStructuredResponse } from "./getStructuredResponse";
 
 /**

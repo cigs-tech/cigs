@@ -1,5 +1,6 @@
 import { Logger } from "tslog";
-import { z, ZodSchema, ZodType } from "zod";
+import { z, ZodType } from "zod";
+import type { ZodSchema } from "zod";
 
 import { openAIClient } from "./clients";
 import {
@@ -7,7 +8,12 @@ import {
   formatExtractPrompt,
   formatGeneratePrompt,
 } from "./prompts";
-import { ChainSmokerConfig, CustomLogObj, Example, Operation } from "./types";
+import type {
+  ChainSmokerConfig,
+  CustomLogObj,
+  Example,
+  Operation,
+} from "./types";
 import {
   createLogitBias,
   executeTools,

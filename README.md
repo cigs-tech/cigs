@@ -6,7 +6,10 @@
 [![GitHub license](https://img.shields.io/github/license/cigs-tech/cigs)](https://github.com/cigs-tech/cigs/blob/main/LICENSE.txt)
 [![Twitter Follow](https://img.shields.io/twitter/follow/Jonovono?style=social)](https://twitter.com/Jonovono)
 
-cigs are Ai typescript functions. they are composable intelligent generative snippets that offer new ways to build powerful applications leveraging the latest in Ai. Think of it as lodash for AI functions or GraphQL for code execution.
+cigs are Ai typescript functions. they are composable intelligent generative
+snippets that offer new ways to build powerful applications leveraging the
+latest in Ai. Think of it as lodash for AI functions or GraphQL for code
+execution.
 
 ![cigs](https://i.imgur.com/QvJerh0.png)
 
@@ -17,9 +20,12 @@ cigs are Ai typescript functions. they are composable intelligent generative sni
 
 What are cigs?
 
-- **Natural Language Execution**: Run TypeScript functions using natural language inputs.
-- **Composable Workflows**: Chain multiple AI functions to create complex workflows.
-- **Helper Functions**: Simplify common tasks like classification, extraction, and generation.
+- **Natural Language Execution**: Run TypeScript functions using natural
+  language inputs.
+- **Composable Workflows**: Chain multiple AI functions to create complex
+  workflows.
+- **Helper Functions**: Simplify common tasks like classification, extraction,
+  and generation.
 - **Type Safety**: Ensure structured outputs with Zod schemas.
 - **Flexible Outputs**: Call functions and get responses in specified formats.
 
@@ -542,24 +548,27 @@ cigs supports various operations that can be chained together:
 cigs aims to become a comprehensive framework for building Ai powered
 applications. Our roadmap includes:
 
-1. **Multi-provider support**: Integrate with various AI providers beyond OpenAI.
-2. **Enhanced modality support**: Expand capabilities to handle image, audio, and
-   video inputs.
-3. **Complex interactions**: Develop tools for creating chatbots, autonomous agents,
-   and multi-step reasoning systems.
-4. **Deployment and monitoring**: Provide easy-to-use tools for deploying, managing,
-   and monitoring cigs in production environments. Something like Firebase functions, Zapier, Replicate etc
-5. **Performance optimization**: Implement caching, batching, and other performance
-   enhancements. For example, after x amount of usage, instead of hitting openai
-   api we can train a model on the usage and serve that.
-6. **Community-driven development**: Foster an ecosystem of shared cigs that anyone
-   can use.
+1. **Multi-provider support**: Integrate with various AI providers beyond
+   OpenAI.
+2. **Enhanced modality support**: Expand capabilities to handle image, audio,
+   and video inputs.
+3. **Complex interactions**: Develop tools for creating chatbots, autonomous
+   agents, and multi-step reasoning systems.
+4. **Deployment and monitoring**: Provide easy-to-use tools for deploying,
+   managing, and monitoring cigs in production environments. Something like
+   Firebase functions, Zapier, Replicate etc
+5. **Performance optimization**: Implement caching, batching, and other
+   performance enhancements. For example, after x amount of usage, instead of
+   hitting openai api we can train a model on the usage and serve that.
+6. **Community-driven development**: Foster an ecosystem of shared cigs that
+   anyone can use.
 7. What would you like to see?
 
 ## Get in touch
 
-💡 **Feature idea?** share it in [our Discord](https://discord.com/invite/Kgw4HpcuYG)
-🐛 **Found a bug?** feel free to [open an issue](https://github.com/cigs-tech/cigs/issues/new/choose)
+💡 **Feature idea?** share it in
+[our Discord](https://discord.com/invite/Kgw4HpcuYG) 🐛 **Found a bug?** feel
+free to [open an issue](https://github.com/cigs-tech/cigs/issues/new/choose)
 
 ## Inspiration
 

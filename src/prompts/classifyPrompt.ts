@@ -1,5 +1,5 @@
 import { templator } from "../clients/templator";
-import { Example } from "../types";
+import type { Example } from "../types";
 
 export interface ClassifyPromptContext<T> {
   data: string;
