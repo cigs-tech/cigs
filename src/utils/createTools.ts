@@ -20,7 +20,7 @@ export function createTools(tools: ChainSmoker<any, any>[]) {
       name,
       parameters: tool.getInputSchema(),
       function: async (args: any) => await tool.run(args),
-      description: tool.config.description || "No description provided",
+      description: tool.config.description || tool.config.instruction || "No description provided",
     });
   });
 }
