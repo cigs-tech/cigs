@@ -15,10 +15,5 @@
       "**/*.test.ts",
       "examples/**"
     ]
-  },
-  "lint": {
-    "rules": {
-      "exclude": ["no-explicit-any"]
-    }
   }
 }
