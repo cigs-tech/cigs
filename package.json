@@ -1,24 +1,33 @@
 {
-  "name": "cig",
+  "name": "cigs",
   "version": "0.1.0",
-  "description": "Call typescript methods with natural language and get the response back in specified structure",
-  "main": "src/index.js",
+  "description": "Composable Ai functions for Typescript built with OpenAI structured outputs and function calling",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
   "scripts": {
-    "format": "deno fmt",
+    "build": "tsup",
+    "check": "biome check --write src",
+    "format": "biome format --write src",
     "test": "vitest",
     "test:loud": "vitest --reporter=basic --disable-console-intercept",
     "publish": "npx jsr publish --dry-run",
-    "example:weather": "npx ts-node examples/testWeather.ts",
-    "example:classification": "npx ts-node examples/testClassification.ts",
-    "example:simple": "npx ts-node examples/testSimple.ts",
-    "example:extraction": "npx ts-node examples/testExtraction.ts",
-    "example:generation": "npx ts-node examples/testGeneration.ts",
-    "example:chaining": "npx ts-node examples/testChaining.ts",
-    "example:handler": "npx ts-node examples/testHandler.ts",
-    "example:uses": "npx ts-node examples/testUses.ts",
-    "example:super-simple": "npx ts-node examples/testSuperSimple.ts"
+    "example:weather": "tsx examples/testWeather.ts",
+    "example:classification": "tsx examples/testClassification.ts",
+    "example:simple": "tsx examples/testSimple.ts",
+    "example:extraction": "tsx examples/testExtraction.ts",
+    "example:generation": "tsx examples/testGeneration.ts",
+    "example:chaining": "tsx examples/testChaining.ts",
+    "example:handler": "tsx examples/testHandler.ts",
+    "example:uses": "tsx examples/testUses.ts",
+    "example:super-simple": "tsx examples/testSuperSimple.ts"
   },
   "author": "Jordan Howlett <jordan@howlett.io>",
+  "homepage": "https://github.com/cigs-tech/cigs",
   "license": "MIT",
   "dependencies": {
     "eta": "^3.5.0",
@@ -28,6 +37,12 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@biomejs/biome": "^1.8.3",
+    "@types/node": "^22.5.0",
+    "jsr": "^0.13.1",
+    "tsup": "^8.2.4",
+    "tsx": "^4.18.0",
+    "typescript": "^5.5.4",
     "vitest": "^2.0.5"
   }
 }

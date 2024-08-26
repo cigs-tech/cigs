@@ -1,8 +1,8 @@
-import { openAIClient } from "../clients/index.ts";
-import { createTools } from "./createTools.ts";
-import type { ChainSmoker } from "../smoke.ts";
-import type { z, ZodSchema } from "zod";
 import { zodResponseFormat } from "openai/helpers/zod";
+import type { ZodSchema, z } from "zod";
+import { openAIClient } from "../clients/index.ts";
+import type { ChainSmoker } from "../smoke.ts";
+import { createTools } from "./createTools.ts";
 
 /**
  * Executes a series of tools on the raw text input.
@@ -29,59 +29,61 @@ import { zodResponseFormat } from "openai/helpers/zod";
  * If the final content is `null`, an error is thrown.
  */
 export async function executeTools<T extends ZodSchema<any>>(
-  tools: ChainSmoker<any, any>[],
-  rawText: string,
-  schema?: T,
-  description?: string,
-  options: { model?: string } = {}
+	tools: ChainSmoker<any, any>[],
+	rawText: string,
+	schema?: T,
+	description?: string,
+	options: { model?: string } = {},
 ): Promise<T extends ZodSchema<any> ? z.infer<T> : string> {
-  const { model = "gpt-4o-2024-08-06" } = options;
-  const createdTools = createTools(tools);
+	const { model = "gpt-4o-2024-08-06" } = options;
+	const createdTools = createTools(tools);
 
-  const messages = [
-    {
-      role: "system" as const,
-      content: description || "Use the supplied tools to assist the user.",
-    },
-    {
-      role: "user" as const,
-      content: rawText,
-    },
-  ];
+	const messages = [
+		{
+			role: "system" as const,
+			content: description || "Use the supplied tools to assist the user.",
+		},
+		{
+			role: "user" as const,
+			content: rawText,
+		},
+	];
 
-  const runnerOptions: any = {
-    model,
-    messages,
-    tools: createdTools,
-  };
+	const runnerOptions: any = {
+		model,
+		messages,
+		tools: createdTools,
+	};
 
-  if (schema) {
-    runnerOptions.response_format = zodResponseFormat(schema, "result");
-  }
+	if (schema) {
+		runnerOptions.response_format = zodResponseFormat(schema, "result");
+	}
 
-  const runnerInstance = openAIClient.beta.chat.completions
-    .runTools(runnerOptions)
-  // .on("message", (message: any) => {
-  //   if (message.role === "tool") {
-  //     // console.log(`Tool ${message.name} output: `, message.content);
-  //   } else {
-  //     // console.log(`Assistant: ${message.content}`);
-  //   }
-  // })
-  // .on("functionCall", (message: any) => {
-  //   // console.log(`Function call: ${message.name}`, message.arguments);
-  // })
-  // .on("finalFunctionCallResult", (message: any) => {
-  //   // console.log(`Final function call result: ${message.name}`, message.arguments);
-  // });
+	const runnerInstance =
+		openAIClient.beta.chat.completions.runTools(runnerOptions);
+	// .on("message", (message: any) => {
+	//   if (message.role === "tool") {
+	//     // console.log(`Tool ${message.name} output: `, message.content);
+	//   } else {
+	//     // console.log(`Assistant: ${message.content}`);
+	//   }
+	// })
+	// .on("functionCall", (message: any) => {
+	//   // console.log(`Function call: ${message.name}`, message.arguments);
+	// })
+	// .on("finalFunctionCallResult", (message: any) => {
+	//   // console.log(`Final function call result: ${message.name}`, message.arguments);
+	// });
 
-  const finalContent = await runnerInstance.finalContent();
-  if (finalContent === null) {
-    throw new Error("Final content is null");
-  }
+	const finalContent = await runnerInstance.finalContent();
+	if (finalContent === null) {
+		throw new Error("Final content is null");
+	}
 
-  if (schema) {
-    return schema.parse(JSON.parse(finalContent)) as T extends ZodSchema<any> ? z.infer<T> : string;
-  }
-  return finalContent as T extends ZodSchema<any> ? z.infer<T> : string;
+	if (schema) {
+		return schema.parse(JSON.parse(finalContent)) as T extends ZodSchema<any>
+			? z.infer<T>
+			: string;
+	}
+	return finalContent as T extends ZodSchema<any> ? z.infer<T> : string;
 }

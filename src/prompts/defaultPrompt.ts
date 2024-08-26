@@ -2,9 +2,9 @@ import { templator } from "../clients/index.ts";
 import type { Example } from "../types/index.ts";
 
 export interface DefaultPromptContext<T> {
-  data: string;
-  instructions?: string;
-  examples?: Example<T>[];
+	data: string;
+	instructions?: string;
+	examples?: Example<T>[];
 }
 
 const DEFAULT_PROMPT = `
@@ -33,17 +33,17 @@ Label: <%= example.output %>
 `;
 
 export async function formatDefaultPrompt<T>(
-  context: DefaultPromptContext<T>,
+	context: DefaultPromptContext<T>,
 ): Promise<string> {
-  try {
-    const result = await templator.renderString(DEFAULT_PROMPT, context);
-    if (result !== undefined) {
-      return result;
-    } else {
-      throw new Error("Failed to render the DEFAULT_PROMPT.");
-    }
-  } catch (error) {
-    console.error("Error rendering DEFAULT_PROMPT:", error);
-    throw error;
-  }
+	try {
+		const result = await templator.renderString(DEFAULT_PROMPT, context);
+		if (result !== undefined) {
+			return result;
+		}
+
+		throw new Error("Failed to render the DEFAULT_PROMPT.");
+	} catch (error) {
+		console.error("Error rendering DEFAULT_PROMPT:", error);
+		throw error;
+	}
 }

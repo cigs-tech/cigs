@@ -11,5 +11,19 @@
   "exclude": [
     "**/*.test.ts",
     "examples/**"
-  ]
+  ],
+  "publish": {
+    "include": [
+      "CHANGELOG.md",
+      "LICENSE",
+      "README.md",
+      "index.ts",
+      "package.json",
+      "src/**/*.ts"
+    ],
+    "exclude": [
+      "**/*.test.ts",
+      "examples/**"
+    ]
+  }
 }

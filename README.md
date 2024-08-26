@@ -1,4 +1,4 @@
-# 🚬 cigs - Ai functions for Typescript
+# 🚬 cigs - Composable Ai functions for Typescript
 
 ![GitHub top language](https://img.shields.io/github/languages/top/cigs-tech/cigs)
 ![JSR Version](https://img.shields.io/jsr/v/@cigs/cigs)
@@ -7,7 +7,7 @@
 [![Twitter Follow](https://img.shields.io/twitter/follow/Jonovono?style=social)](https://twitter.com/Jonovono)
 [![Discord](https://img.shields.io/discord/1071029581009657896?style=flat&logo=discord&logoColor=fff&color=404eed)](https://discord.gg/AZHft5hCzf)
 
-cigs are Ai typescript functions. They are **composable** **intelligent** **generative** **snippets** that offer new ways to build powerful applications leveraging the latest in Ai. cigs is the lodash for AI functions or GraphQL for code execution. cigs is powered by OpenAI [structured outputs](https://platform.openai.com/docs/guides/structured-outputs) and [function calling](https://platform.openai.com/docs/guides/function-calling). In the future, we will support more LLMs and more structured output types but Structured outputs enables some powerful stuff.
+cigs are Ai typescript functions. They are **composable** **intelligent** **generative** **snippets** that offer new ways to build powerful applications leveraging the latest in Ai. Some call it the lodash for AI functions or GraphQL for code execution. cigs are powered by OpenAI [structured outputs](https://platform.openai.com/docs/guides/structured-outputs) and [function calling](https://platform.openai.com/docs/guides/function-calling). In the future, we will support more LLMs and more structured output types but Structured outputs enables some powerful stuff.
 
 ![cigs](https://i.imgur.com/QvJerh0.png)
 

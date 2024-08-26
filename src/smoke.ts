@@ -1,13 +1,13 @@
 import { Logger } from "tslog";
-import { z, ZodType } from "zod";
+import { ZodType, z } from "zod";
 import type { ZodSchema } from "zod";
 
 import { openAIClient } from "./clients/index.ts";
 import {
   formatClassifyPrompt,
+  formatDefaultPrompt,
   formatExtractPrompt,
   formatGeneratePrompt,
-  formatDefaultPrompt,
 } from "./prompts/index.ts";
 import type {
   ChainSmokerConfig,
@@ -125,7 +125,7 @@ export class ChainSmoker<I = any, O = I> {
   constructor(
     name: string,
     inputSchema: ZodSchema<I> | null = null,
-    config: Partial<ChainSmokerConfig>,
+    config: Partial<ChainSmokerConfig> = {},
   ) {
     this.inputSchema = inputSchema;
     // this.outputSchema = inputSchema as unknown as ZodSchema<O>;
@@ -353,7 +353,7 @@ export class ChainSmoker<I = any, O = I> {
         max_tokens: 1,
         logit_bias: logitBias,
       });
-      const labelIndex = parseInt(
+      const labelIndex = Number.parseInt(
         response.choices[0]?.message?.content || "0",
         10,
       );
@@ -398,26 +398,26 @@ export class ChainSmoker<I = any, O = I> {
 
   /**
    * Executes a series of tools (other ChainSmoker instances) on the input.
-   * 
+   *
    * @template S - The Zod schema type for output validation (optional).
    * @template I - The input type of the ChainSmoker instance.
-   * 
+   *
    * @overload
    * @param {ChainSmoker<any, any>[]} tools - An array of ChainSmoker instances to be used as tools.
    * @param {S} schema - A Zod schema for output validation and typing.
    * @param {(config: Configurator<z.infer<S>>) => void} [configurator] - Optional function to configure the operation.
    * @returns {ChainSmoker<I, z.infer<S>>} A new ChainSmoker instance with the inferred schema type as output.
-   * 
+   *
    * @overload
    * @param {ChainSmoker<any, any>[]} tools - An array of ChainSmoker instances to be used as tools.
    * @param {(config: Configurator<string>) => void} [configurator] - Optional function to configure the operation.
    * @returns {ChainSmoker<I, string>} A new ChainSmoker instance with string output type.
-   * 
+   *
    * @param {ChainSmoker<any, any>[]} tools - An array of ChainSmoker instances to be used as tools.
    * @param {S | ((config: Configurator<string>) => void)} [schemaOrConfigurator] - Either a Zod schema or a configurator function.
    * @param {(config: Configurator<z.infer<S> | string>) => void} [configurator] - Optional function to configure the operation.
    * @returns {ChainSmoker<I, z.infer<S> | string>} A new ChainSmoker instance with either the inferred schema type or string as output.
-   * 
+   *
    * @remarks
    * This method creates a new ChainSmoker instance that executes the provided tools on the input.
    * It supports optional schema validation and configuration.
@@ -428,16 +428,16 @@ export class ChainSmoker<I = any, O = I> {
   uses<S extends ZodSchema<any>>(
     tools: ChainSmoker<any, any>[],
     schema: S,
-    configurator?: (config: Configurator<z.infer<S>>) => void
+    configurator?: (config: Configurator<z.infer<S>>) => void,
   ): ChainSmoker<I, z.infer<S>>;
   uses(
     tools: ChainSmoker<any, any>[],
-    configurator?: (config: Configurator<string>) => void
+    configurator?: (config: Configurator<string>) => void,
   ): ChainSmoker<I, string>;
   uses<S extends ZodSchema<any>>(
     tools: ChainSmoker<any, any>[],
     schemaOrConfigurator?: S | ((config: Configurator<string>) => void),
-    configurator?: (config: Configurator<z.infer<S> | string>) => void
+    configurator?: (config: Configurator<z.infer<S> | string>) => void,
   ): ChainSmoker<I, z.infer<S> | string> {
     let schema: S | undefined;
     const config = new Configurator<z.infer<S> | string>();
@@ -448,8 +448,8 @@ export class ChainSmoker<I = any, O = I> {
         configurator(config);
       }
     } else if (typeof schemaOrConfigurator === "function") {
-      configurator = schemaOrConfigurator;
-      configurator(config);
+      const configuratorFunc = schemaOrConfigurator;
+      configuratorFunc(config);
     }
 
     const operation: Operation<O, z.infer<S> | string> = async (input: O) => {
@@ -464,7 +464,7 @@ export class ChainSmoker<I = any, O = I> {
         JSON.stringify(input),
         schema,
         config.getInstruction(),
-        { model: this.config.model }
+        { model: this.config.model },
       );
 
       this.logger.debug({
@@ -484,7 +484,7 @@ export class ChainSmoker<I = any, O = I> {
         ...this.config,
         instruction: config.getInstruction(),
         examples: config.getExamples(),
-      }
+      },
     );
     newChainSmoker.operations = [...this.operations, operation];
     return newChainSmoker;
@@ -541,7 +541,8 @@ export class ChainSmoker<I = any, O = I> {
     }
 
     if (this.operations.length === 0) {
-      const processedInput = typeof input === "string" ? input : JSON.stringify(input);
+      const processedInput =
+        typeof input === "string" ? input : JSON.stringify(input);
       // If no operations are specified, use a default operation
       return this.defaultOperation(processedInput) as unknown as O;
     }
@@ -554,7 +555,7 @@ export class ChainSmoker<I = any, O = I> {
     }
 
     // return result as O;
-    return this.outputSchema ? this.outputSchema.parse(result) : result as O;
+    return this.outputSchema ? this.outputSchema.parse(result) : (result as O);
   }
 }
 

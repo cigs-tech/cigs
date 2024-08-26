@@ -23,10 +23,10 @@
  * ```
  */
 export function prepareData(data: any): string {
-  if (Array.isArray(data)) {
-    return data.map((item) => outputToString(item)).join("\n");
-  }
-  return outputToString(data);
+	if (Array.isArray(data)) {
+		return data.map((item) => outputToString(item)).join("\n");
+	}
+	return outputToString(data);
 }
 
 /**
@@ -58,15 +58,15 @@ export function prepareData(data: any): string {
  * ```
  */
 export function outputToString(output: any): string {
-  if (output === null || output === undefined) {
-    return "";
-  }
-  if (typeof output === "string") {
-    return output;
-  }
-  try {
-    return JSON.stringify(output);
-  } catch {
-    return String(output);
-  }
+	if (output === null || output === undefined) {
+		return "";
+	}
+	if (typeof output === "string") {
+		return output;
+	}
+	try {
+		return JSON.stringify(output);
+	} catch {
+		return String(output);
+	}
 }

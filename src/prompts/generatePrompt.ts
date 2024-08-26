@@ -1,10 +1,10 @@
 import { templator } from "../clients/index.ts";
 
 export interface GeneratePromptContext<T> {
-  data: string;
-  count: number;
-  instructions: string;
-  examples?: Array<T>;
+	data: string;
+	count: number;
+	instructions: string;
+	examples?: Array<T>;
 }
 
 const GENERATE_PROMPT = `
@@ -41,17 +41,16 @@ Generate a list of <%= it.count %> random entit<%= it.count === 1 ? 'y' : 'ies' 
 `;
 
 export async function formatGeneratePrompt<T>(
-  context: GeneratePromptContext<T>,
+	context: GeneratePromptContext<T>,
 ): Promise<string> {
-  try {
-    const result = await templator.renderString(GENERATE_PROMPT, context);
-    if (result !== undefined) {
-      return result;
-    } else {
-      throw new Error("Failed to render the CLASSIFY_PROMPT.");
-    }
-  } catch (error) {
-    console.error("Error rendering CLASSIFY_PROMPT:", error);
-    throw error;
-  }
+	try {
+		const result = await templator.renderString(GENERATE_PROMPT, context);
+		if (result !== undefined) {
+			return result;
+		}
+		throw new Error("Failed to render the CLASSIFY_PROMPT.");
+	} catch (error) {
+		console.error("Error rendering CLASSIFY_PROMPT:", error);
+		throw error;
+	}
 }
