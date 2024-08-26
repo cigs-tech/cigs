@@ -35,19 +35,19 @@ import { getStructuredResponse } from "./getStructuredResponse.ts";
  * ```
  */
 export async function processToolOutput<TOutput>(
-  input: string,
-  outputSchema?: ZodSchema<TOutput>,
-  description?: string,
-  name?: string,
-  options: { model?: string } = {},
+	input: string,
+	outputSchema?: ZodSchema<TOutput>,
+	description?: string,
+	name?: string,
+	options: { model?: string } = {},
 ): Promise<TOutput> {
-  const { model = "gpt-4o-2024-08-06" } = options;
+	const { model = "gpt-4o-2024-08-06" } = options;
 
-  if (outputSchema) {
-    return await getStructuredResponse(input, outputSchema, description, name, {
-      model,
-    });
-  }
+	if (outputSchema) {
+		return await getStructuredResponse(input, outputSchema, description, name, {
+			model,
+		});
+	}
 
-  return input as TOutput;
+	return input as TOutput;
 }

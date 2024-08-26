@@ -1,5 +1,5 @@
-import type { ZodSchema } from "zod";
 import { zodResponseFormat } from "openai/helpers/zod";
+import type { ZodSchema } from "zod";
 import { openAIClient } from "../clients/index.ts";
 
 /**
@@ -40,39 +40,43 @@ import { openAIClient } from "../clients/index.ts";
  * ```
  */
 export async function getStructuredResponse<T>(
-  input: string,
-  schema: ZodSchema<T>,
-  description?: string,
-  name?: string,
-  options: { model?: string; temperature?: number; maxTokens?: number } = {},
+	input: string,
+	schema: ZodSchema<T>,
+	description?: string,
+	name?: string,
+	options: { model?: string; temperature?: number; maxTokens?: number } = {},
 ): Promise<T> {
-  const { model = "gpt-4o-2024-08-06", temperature = 1, maxTokens = null } =
-    options;
+	const {
+		model = "gpt-4o-2024-08-06",
+		temperature = 1,
+		maxTokens = null,
+	} = options;
 
-  try {
-    const completion = await openAIClient.beta.chat.completions.parse({
-      model,
-      temperature,
-      max_tokens: maxTokens,
-      messages: [
-        {
-          role: "system",
-          content: description ||
-            "Process the input according to the provided schema.",
-        },
-        { role: "user", content: input },
-      ],
-      response_format: zodResponseFormat(schema, name || "result"),
-    });
+	try {
+		const completion = await openAIClient.beta.chat.completions.parse({
+			model,
+			temperature,
+			max_tokens: maxTokens,
+			messages: [
+				{
+					role: "system",
+					content:
+						description ||
+						"Process the input according to the provided schema.",
+				},
+				{ role: "user", content: input },
+			],
+			response_format: zodResponseFormat(schema, name || "result"),
+		});
 
-    if (completion.choices[0].message.parsed === null) {
-      throw new Error(
-        "Failed to parse the model's output according to the schema",
-      );
-    }
+		if (completion.choices[0].message.parsed === null) {
+			throw new Error(
+				"Failed to parse the model's output according to the schema",
+			);
+		}
 
-    return completion.choices[0].message.parsed;
-  } catch (error) {
-    throw new Error(`Failed to process input: ${error}`);
-  }
+		return completion.choices[0].message.parsed;
+	} catch (error) {
+		throw new Error(`Failed to process input: ${error}`);
+	}
 }

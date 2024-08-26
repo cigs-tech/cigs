@@ -2,10 +2,10 @@ import { templator } from "../clients/index.ts";
 import type { Example } from "../types/index.ts";
 
 export interface ClassifyPromptContext<T> {
-  data: string;
-  instructions?: string;
-  examples?: Example<T>[];
-  labels: T[];
+	data: string;
+	instructions?: string;
+	examples?: Example<T>[];
+	labels: T[];
 }
 
 const CLASSIFY_PROMPT = `
@@ -49,17 +49,17 @@ The best label for the data is Label
 
 // export async function classifyPrompt(context: ClassifyPromptContext) {
 export async function formatClassifyPrompt<T>(
-  context: ClassifyPromptContext<T>,
+	context: ClassifyPromptContext<T>,
 ): Promise<string> {
-  try {
-    const result = await templator.renderString(CLASSIFY_PROMPT, context);
-    if (result !== undefined) {
-      return result;
-    } else {
-      throw new Error("Failed to render the CLASSIFY_PROMPT.");
-    }
-  } catch (error) {
-    console.error("Error rendering CLASSIFY_PROMPT:", error);
-    throw error;
-  }
+	try {
+		const result = await templator.renderString(CLASSIFY_PROMPT, context);
+		if (result !== undefined) {
+			return result;
+		}
+
+		throw new Error("Failed to render the CLASSIFY_PROMPT.");
+	} catch (error) {
+		console.error("Error rendering CLASSIFY_PROMPT:", error);
+		throw error;
+	}
 }

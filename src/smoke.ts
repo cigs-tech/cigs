@@ -1,25 +1,25 @@
 import { Logger } from "tslog";
-import { z, ZodType } from "zod";
+import { ZodType, z } from "zod";
 import type { ZodSchema } from "zod";
 
 import { openAIClient } from "./clients/index.ts";
 import {
-  formatClassifyPrompt,
-  formatExtractPrompt,
-  formatGeneratePrompt,
-  formatDefaultPrompt,
+	formatClassifyPrompt,
+	formatDefaultPrompt,
+	formatExtractPrompt,
+	formatGeneratePrompt,
 } from "./prompts/index.ts";
 import type {
-  ChainSmokerConfig,
-  CustomLogObj,
-  Example,
-  Operation,
+	ChainSmokerConfig,
+	CustomLogObj,
+	Example,
+	Operation,
 } from "./types/index.ts";
 import {
-  createLogitBias,
-  executeTools,
-  getStructuredResponse,
-  processInput,
+	createLogitBias,
+	executeTools,
+	getStructuredResponse,
+	processInput,
 } from "./utils/index.ts";
 
 /**
@@ -28,78 +28,78 @@ import {
  * @typeParam T - The type of data being configured.
  */
 export class Configurator<T> {
-  private _config: Partial<ChainSmokerConfig> = {};
+	private _config: Partial<ChainSmokerConfig> = {};
 
-  /**
-   * Sets the description for the operation.
-   *
-   * @param description - A string describing the operation.
-   * @returns The Configurator instance for method chaining.
-   */
-  setDescription(description: string): this {
-    this._config.description = description;
-    return this;
-  }
+	/**
+	 * Sets the description for the operation.
+	 *
+	 * @param description - A string describing the operation.
+	 * @returns The Configurator instance for method chaining.
+	 */
+	setDescription(description: string): this {
+		this._config.description = description;
+		return this;
+	}
 
-  /**
-   * Sets the AI model to be used for the operation.
-   *
-   * @param model - The name or identifier of the AI model.
-   * @returns The Configurator instance for method chaining.
-   */
-  setModel(model: string): this {
-    this._config.model = model;
-    return this;
-  }
+	/**
+	 * Sets the AI model to be used for the operation.
+	 *
+	 * @param model - The name or identifier of the AI model.
+	 * @returns The Configurator instance for method chaining.
+	 */
+	setModel(model: string): this {
+		this._config.model = model;
+		return this;
+	}
 
-  /**
-   * Sets the log level for the operation.
-   *
-   * @param level - The numeric log level.
-   * @returns The Configurator instance for method chaining.
-   */
-  setLogLevel(level: number): this {
-    this._config.logLevel = level;
-    return this;
-  }
+	/**
+	 * Sets the log level for the operation.
+	 *
+	 * @param level - The numeric log level.
+	 * @returns The Configurator instance for method chaining.
+	 */
+	setLogLevel(level: number): this {
+		this._config.logLevel = level;
+		return this;
+	}
 
-  /**
-   * Adds an instruction for the AI model.
-   *
-   * @param instruction - A string containing instructions for the AI model.
-   * @returns The Configurator instance for method chaining.
-   */
-  addInstruction(instruction: string): this {
-    this._config.instruction = instruction;
-    return this;
-  }
+	/**
+	 * Adds an instruction for the AI model.
+	 *
+	 * @param instruction - A string containing instructions for the AI model.
+	 * @returns The Configurator instance for method chaining.
+	 */
+	addInstruction(instruction: string): this {
+		this._config.instruction = instruction;
+		return this;
+	}
 
-  /**
-   * Adds an example input-output pair for the AI model.
-   *
-   * @param input - The example input.
-   * @param output - The expected output for the given input.
-   * @returns The Configurator instance for method chaining.
-   */
-  addExample(input: string, output: T): this {
-    if (!this._config.examples) {
-      this._config.examples = [];
-    }
-    this._config.examples.push({ input, output });
-    return this;
-  }
+	/**
+	 * Adds an example input-output pair for the AI model.
+	 *
+	 * @param input - The example input.
+	 * @param output - The expected output for the given input.
+	 * @returns The Configurator instance for method chaining.
+	 */
+	addExample(input: string, output: T): this {
+		if (!this._config.examples) {
+			this._config.examples = [];
+		}
+		this._config.examples.push({ input, output });
+		return this;
+	}
 
-  getConfig(): Partial<ChainSmokerConfig> {
-    return this._config;
-  }
+	getConfig(): Partial<ChainSmokerConfig> {
+		return this._config;
+	}
 
-  getInstruction(): string {
-    return this._config.instruction || "";
-  }
+	getInstruction(): string {
+		return this._config.instruction || "";
+	}
 
-  getExamples(): Example<T>[] {
-    return this._config.examples || [];
-  }
+	getExamples(): Example<T>[] {
+		return this._config.examples || [];
+	}
 }
 
 /**
@@ -109,453 +109,454 @@ export class Configurator<T> {
  * @typeParam O - The output type for the AI function.
  */
 export class ChainSmoker<I = any, O = I> {
-  private operations: Operation<any, any>[] = [];
-  private inputSchema: ZodSchema<I> | null;
-  private outputSchema: ZodSchema<O> | null;
-  private logger: Logger<CustomLogObj>;
-  public config: ChainSmokerConfig;
+	private operations: Operation<any, any>[] = [];
+	private inputSchema: ZodSchema<I> | null;
+	private outputSchema: ZodSchema<O> | null;
+	private logger: Logger<CustomLogObj>;
+	public config: ChainSmokerConfig;
 
-  /**
-   * Creates a new ChainSmoker instance.
-   *
-   * @param name - The name of the ChainSmoker instance.
-   * @param inputSchema - The Zod schema for the input, or null if not specified.
-   * @param config - Partial configuration for the ChainSmoker.
-   */
-  constructor(
-    name: string,
-    inputSchema: ZodSchema<I> | null = null,
-    config: Partial<ChainSmokerConfig>,
-  ) {
-    this.inputSchema = inputSchema;
-    // this.outputSchema = inputSchema as unknown as ZodSchema<O>;
-    this.outputSchema = null;
-    this.config = {
-      name,
-      logLevel: config.logLevel ?? 5,
-      model: config.model ?? "gpt-4o-2024-08-06",
-      description: config.description ?? "",
-      instruction: config.instruction ?? "",
-      examples: config.examples ?? [],
-    };
-    this.logger = new Logger<CustomLogObj>({
-      name: `cig-${name}`,
-      minLevel: this.config.logLevel,
-    });
-  }
+	/**
+	 * Creates a new ChainSmoker instance.
+	 *
+	 * @param name - The name of the ChainSmoker instance.
+	 * @param inputSchema - The Zod schema for the input, or null if not specified.
+	 * @param config - Partial configuration for the ChainSmoker.
+	 */
+	constructor(
+		name: string,
+		inputSchema: ZodSchema<I> | null = null,
+		config: Partial<ChainSmokerConfig> = {},
+	) {
+		this.inputSchema = inputSchema;
+		// this.outputSchema = inputSchema as unknown as ZodSchema<O>;
+		this.outputSchema = null;
+		this.config = {
+			name,
+			logLevel: config.logLevel ?? 5,
+			model: config.model ?? "gpt-4o-2024-08-06",
+			description: config.description ?? "",
+			instruction: config.instruction ?? "",
+			examples: config.examples ?? [],
+		};
+		this.logger = new Logger<CustomLogObj>({
+			name: `cig-${name}`,
+			minLevel: this.config.logLevel,
+		});
+	}
 
-  /**
-   * Gets the input schema for the ChainSmoker.
-   *
-   * @returns The Zod schema for the input.
-   */
-  getInputSchema(): ZodSchema<I> {
-    const schema = this.inputSchema || z.object({ input: z.string() });
-    return schema as ZodSchema<I>;
-  }
+	/**
+	 * Gets the input schema for the ChainSmoker.
+	 *
+	 * @returns The Zod schema for the input.
+	 */
+	getInputSchema(): ZodSchema<I> {
+		const schema = this.inputSchema || z.object({ input: z.string() });
+		return schema as ZodSchema<I>;
+	}
 
-  /**
-   * Transforms the output of the previous operation using a Zod schema.
-   *
-   * @typeParam NewO - The new output type after schema transformation.
-   * @param schema - The Zod schema to apply to the output.
-   * @param configurator - Optional function to configure the operation.
-   * @returns A new {@link ChainSmoker} instance with the updated output type.
-   */
-  schema<NewO>(
-    schema: ZodSchema<NewO>,
-    configurator?: (config: Configurator<NewO>) => void,
-  ): ChainSmoker<I, NewO> {
-    const config = new Configurator<NewO>();
-    if (configurator) {
-      configurator(config);
-    }
+	/**
+	 * Transforms the output of the previous operation using a Zod schema.
+	 *
+	 * @typeParam NewO - The new output type after schema transformation.
+	 * @param schema - The Zod schema to apply to the output.
+	 * @param configurator - Optional function to configure the operation.
+	 * @returns A new {@link ChainSmoker} instance with the updated output type.
+	 */
+	schema<NewO>(
+		schema: ZodSchema<NewO>,
+		configurator?: (config: Configurator<NewO>) => void,
+	): ChainSmoker<I, NewO> {
+		const config = new Configurator<NewO>();
+		if (configurator) {
+			configurator(config);
+		}
 
-    const operation: Operation<O, NewO> = async (input: O) => {
-      const instruction = config.getInstruction();
-      const examples = config.getExamples();
-      this.logger.debug({
-        operation: "schema",
-        context: "init",
-        input,
-        instruction,
-        examples,
-      });
-      const promptContext = {
-        data: JSON.stringify(input),
-        instructions: instruction,
-        examples,
-        outputSchema: schema,
-      };
-      const prompt = await formatExtractPrompt(promptContext);
-      this.logger.trace({
-        operation: "schema",
-        context: "extracted prompt",
-        prompt,
-      });
-      return getStructuredResponse(
-        JSON.stringify(input),
-        schema,
-        prompt,
-        "result",
-        { model: this.config.model },
-      );
-    };
+		const operation: Operation<O, NewO> = async (input: O) => {
+			const instruction = config.getInstruction();
+			const examples = config.getExamples();
+			this.logger.debug({
+				operation: "schema",
+				context: "init",
+				input,
+				instruction,
+				examples,
+			});
+			const promptContext = {
+				data: JSON.stringify(input),
+				instructions: instruction,
+				examples,
+				outputSchema: schema,
+			};
+			const prompt = await formatExtractPrompt(promptContext);
+			this.logger.trace({
+				operation: "schema",
+				context: "extracted prompt",
+				prompt,
+			});
+			return getStructuredResponse(
+				JSON.stringify(input),
+				schema,
+				prompt,
+				"result",
+				{ model: this.config.model },
+			);
+		};
 
-    const newChainSmoker = new ChainSmoker<I, NewO>(
-      this.config.name,
-      this.inputSchema,
-      {
-        ...this.config,
-        instruction: config.getInstruction(),
-        examples: config.getExamples(),
-      },
-    );
-    newChainSmoker.operations = [...this.operations, operation];
-    newChainSmoker.outputSchema = schema;
-    return newChainSmoker;
-  }
+		const newChainSmoker = new ChainSmoker<I, NewO>(
+			this.config.name,
+			this.inputSchema,
+			{
+				...this.config,
+				instruction: config.getInstruction(),
+				examples: config.getExamples(),
+			},
+		);
+		newChainSmoker.operations = [...this.operations, operation];
+		newChainSmoker.outputSchema = schema;
+		return newChainSmoker;
+	}
 
-  /**
-   * Generates multiple outputs based on the input.
-   *
-   * @typeParam NewO - The type of each generated output.
-   * @param schema - The Zod schema for each generated output.
-   * @param count - The number of outputs to generate.
-   * @param configurator - Optional function to configure the operation.
-   * @returns A new {@link ChainSmoker} instance with an array output type.
-   */
-  generate<NewO>(
-    schema: ZodSchema<NewO>,
-    count: number,
-    configurator?: (config: Configurator<NewO>) => void,
-  ): ChainSmoker<I, NewO[]> {
-    const config = new Configurator<NewO>();
-    if (configurator) {
-      configurator(config);
-    }
-    const operation: Operation<O, NewO[]> = async (input: O) => {
-      this.logger.debug({
-        operation: "generate",
-        context: "init",
-        input,
-        instruction: config.getInstruction(),
-        examples: config.getExamples(),
-      });
-      const promptContext = {
-        data: JSON.stringify(input),
-        count,
-        instructions: config.getInstruction(),
-        examples: config.getExamples(),
-      };
-      const prompt = await formatGeneratePrompt(promptContext);
-      this.logger.trace({
-        operation: "generate",
-        context: "extracted prompt",
-        prompt,
-      });
-      const wrappedSchema = z.object({ results: z.array(schema) });
-      const response = await getStructuredResponse(
-        JSON.stringify(input),
-        wrappedSchema,
-        prompt,
-        "result",
-        { model: this.config.model },
-      );
-      return response.results;
-    };
-    const newChainSmoker = new ChainSmoker<I, NewO[]>(
-      this.config.name,
-      this.inputSchema,
-      {
-        ...this.config,
-        instruction: config.getInstruction(),
-        examples: config.getExamples(),
-      },
-    );
-    newChainSmoker.operations = [...this.operations, operation];
-    return newChainSmoker;
-  }
+	/**
+	 * Generates multiple outputs based on the input.
+	 *
+	 * @typeParam NewO - The type of each generated output.
+	 * @param schema - The Zod schema for each generated output.
+	 * @param count - The number of outputs to generate.
+	 * @param configurator - Optional function to configure the operation.
+	 * @returns A new {@link ChainSmoker} instance with an array output type.
+	 */
+	generate<NewO>(
+		schema: ZodSchema<NewO>,
+		count: number,
+		configurator?: (config: Configurator<NewO>) => void,
+	): ChainSmoker<I, NewO[]> {
+		const config = new Configurator<NewO>();
+		if (configurator) {
+			configurator(config);
+		}
+		const operation: Operation<O, NewO[]> = async (input: O) => {
+			this.logger.debug({
+				operation: "generate",
+				context: "init",
+				input,
+				instruction: config.getInstruction(),
+				examples: config.getExamples(),
+			});
+			const promptContext = {
+				data: JSON.stringify(input),
+				count,
+				instructions: config.getInstruction(),
+				examples: config.getExamples(),
+			};
+			const prompt = await formatGeneratePrompt(promptContext);
+			this.logger.trace({
+				operation: "generate",
+				context: "extracted prompt",
+				prompt,
+			});
+			const wrappedSchema = z.object({ results: z.array(schema) });
+			const response = await getStructuredResponse(
+				JSON.stringify(input),
+				wrappedSchema,
+				prompt,
+				"result",
+				{ model: this.config.model },
+			);
+			return response.results;
+		};
+		const newChainSmoker = new ChainSmoker<I, NewO[]>(
+			this.config.name,
+			this.inputSchema,
+			{
+				...this.config,
+				instruction: config.getInstruction(),
+				examples: config.getExamples(),
+			},
+		);
+		newChainSmoker.operations = [...this.operations, operation];
+		return newChainSmoker;
+	}
 
-  private async defaultOperation(input: string): Promise<string> {
-    const config = this.config;
+	private async defaultOperation(input: string): Promise<string> {
+		const config = this.config;
 
-    this.logger.debug({
-      operation: "defaultOperation",
-      context: "init",
-      input,
-      instruction: config.instruction,
-      examples: config.examples,
-    });
+		this.logger.debug({
+			operation: "defaultOperation",
+			context: "init",
+			input,
+			instruction: config.instruction,
+			examples: config.examples,
+		});
 
-    const promptContext = {
-      data: input,
-      instructions: config.instruction,
-      examples: config.examples,
-    };
+		const promptContext = {
+			data: input,
+			instructions: config.instruction,
+			examples: config.examples,
+		};
 
-    const prompt = await formatDefaultPrompt(promptContext);
+		const prompt = await formatDefaultPrompt(promptContext);
 
-    this.logger.trace({
-      operation: "defaultOperation",
-      context: "extracted prompt",
-      prompt,
-    });
+		this.logger.trace({
+			operation: "defaultOperation",
+			context: "extracted prompt",
+			prompt,
+		});
 
-    const response = await openAIClient.chat.completions.create({
-      model: this.config.model,
-      messages: [{ role: "user", content: prompt }],
-    });
+		const response = await openAIClient.chat.completions.create({
+			model: this.config.model,
+			messages: [{ role: "user", content: prompt }],
+		});
 
-    return response.choices[0]?.message?.content || "";
-  }
+		return response.choices[0]?.message?.content || "";
+	}
 
-  /**
-   * Classifies the input into one of the provided labels.
-   *
-   * @param labels - An array of possible classification labels.
-   * @param configurator - Optional function to configure the operation.
-   * @returns A new {@link ChainSmoker} instance with a string output type.
-   */
-  classify(
-    labels: string[],
-    configurator?: (config: Configurator<string>) => void,
-  ): ChainSmoker<I, string> {
-    const config = new Configurator<string>();
-    if (configurator) {
-      configurator(config);
-    }
-    const operation: Operation<O, string> = async (input: O) => {
-      this.logger.debug({
-        operation: "classify",
-        context: "init",
-        input,
-        instruction: config.getInstruction(),
-        examples: config.getExamples(),
-      });
-      const promptContext = {
-        data: JSON.stringify(input),
-        instructions: config.getInstruction(),
-        examples: config.getExamples(),
-        labels,
-      };
-      const prompt = await formatClassifyPrompt(promptContext);
-      this.logger.trace({
-        operation: "classify",
-        context: "extracted prompt",
-        prompt,
-      });
-      const logitBias = createLogitBias(labels);
-      const response = await openAIClient.chat.completions.create({
-        model: this.config.model,
-        messages: [{ role: "user", content: prompt }],
-        temperature: 0,
-        max_tokens: 1,
-        logit_bias: logitBias,
-      });
-      const labelIndex = parseInt(
-        response.choices[0]?.message?.content || "0",
-        10,
-      );
-      return labels[labelIndex];
-    };
-    const newChainSmoker = new ChainSmoker<I, string>(
-      this.config.name,
-      this.inputSchema,
-      {
-        ...this.config,
-        instruction: config.getInstruction(),
-        examples: config.getExamples(),
-      },
-    );
-    newChainSmoker.operations = [...this.operations, operation];
-    return newChainSmoker;
-  }
+	/**
+	 * Classifies the input into one of the provided labels.
+	 *
+	 * @param labels - An array of possible classification labels.
+	 * @param configurator - Optional function to configure the operation.
+	 * @returns A new {@link ChainSmoker} instance with a string output type.
+	 */
+	classify(
+		labels: string[],
+		configurator?: (config: Configurator<string>) => void,
+	): ChainSmoker<I, string> {
+		const config = new Configurator<string>();
+		if (configurator) {
+			configurator(config);
+		}
+		const operation: Operation<O, string> = async (input: O) => {
+			this.logger.debug({
+				operation: "classify",
+				context: "init",
+				input,
+				instruction: config.getInstruction(),
+				examples: config.getExamples(),
+			});
+			const promptContext = {
+				data: JSON.stringify(input),
+				instructions: config.getInstruction(),
+				examples: config.getExamples(),
+				labels,
+			};
+			const prompt = await formatClassifyPrompt(promptContext);
+			this.logger.trace({
+				operation: "classify",
+				context: "extracted prompt",
+				prompt,
+			});
+			const logitBias = createLogitBias(labels);
+			const response = await openAIClient.chat.completions.create({
+				model: this.config.model,
+				messages: [{ role: "user", content: prompt }],
+				temperature: 0,
+				max_tokens: 1,
+				logit_bias: logitBias,
+			});
+			const labelIndex = Number.parseInt(
+				response.choices[0]?.message?.content || "0",
+				10,
+			);
+			return labels[labelIndex];
+		};
+		const newChainSmoker = new ChainSmoker<I, string>(
+			this.config.name,
+			this.inputSchema,
+			{
+				...this.config,
+				instruction: config.getInstruction(),
+				examples: config.getExamples(),
+			},
+		);
+		newChainSmoker.operations = [...this.operations, operation];
+		return newChainSmoker;
+	}
 
-  /**
-   * Applies a custom handler function to the input.
-   *
-   * @typeParam NewO - The output type of the handler function.
-   * @param handler - A function that processes the input and returns a new output.
-   * @returns A new {@link ChainSmoker} instance with the handler's output type.
-   */
-  handler<NewO>(
-    handler: (data: O) => Promise<NewO> | NewO,
-  ): ChainSmoker<I, NewO> {
-    const operation: Operation<O, NewO> = async (input: O) => {
-      this.logger.debug({ operation: "handler", context: "init", input });
-      const result = await handler(input);
-      return result;
-    };
-    const newChainSmoker = new ChainSmoker<I, NewO>(
-      this.config.name,
-      this.inputSchema,
-      this.config,
-    );
-    newChainSmoker.operations = [...this.operations, operation];
-    return newChainSmoker;
-  }
+	/**
+	 * Applies a custom handler function to the input.
+	 *
+	 * @typeParam NewO - The output type of the handler function.
+	 * @param handler - A function that processes the input and returns a new output.
+	 * @returns A new {@link ChainSmoker} instance with the handler's output type.
+	 */
+	handler<NewO>(
+		handler: (data: O) => Promise<NewO> | NewO,
+	): ChainSmoker<I, NewO> {
+		const operation: Operation<O, NewO> = async (input: O) => {
+			this.logger.debug({ operation: "handler", context: "init", input });
+			const result = await handler(input);
+			return result;
+		};
+		const newChainSmoker = new ChainSmoker<I, NewO>(
+			this.config.name,
+			this.inputSchema,
+			this.config,
+		);
+		newChainSmoker.operations = [...this.operations, operation];
+		return newChainSmoker;
+	}
 
-  /**
-   * Executes a series of tools (other ChainSmoker instances) on the input.
-   * 
-   * @template S - The Zod schema type for output validation (optional).
-   * @template I - The input type of the ChainSmoker instance.
-   * 
-   * @overload
-   * @param {ChainSmoker<any, any>[]} tools - An array of ChainSmoker instances to be used as tools.
-   * @param {S} schema - A Zod schema for output validation and typing.
-   * @param {(config: Configurator<z.infer<S>>) => void} [configurator] - Optional function to configure the operation.
-   * @returns {ChainSmoker<I, z.infer<S>>} A new ChainSmoker instance with the inferred schema type as output.
-   * 
-   * @overload
-   * @param {ChainSmoker<any, any>[]} tools - An array of ChainSmoker instances to be used as tools.
-   * @param {(config: Configurator<string>) => void} [configurator] - Optional function to configure the operation.
-   * @returns {ChainSmoker<I, string>} A new ChainSmoker instance with string output type.
-   * 
-   * @param {ChainSmoker<any, any>[]} tools - An array of ChainSmoker instances to be used as tools.
-   * @param {S | ((config: Configurator<string>) => void)} [schemaOrConfigurator] - Either a Zod schema or a configurator function.
-   * @param {(config: Configurator<z.infer<S> | string>) => void} [configurator] - Optional function to configure the operation.
-   * @returns {ChainSmoker<I, z.infer<S> | string>} A new ChainSmoker instance with either the inferred schema type or string as output.
-   * 
-   * @remarks
-   * This method creates a new ChainSmoker instance that executes the provided tools on the input.
-   * It supports optional schema validation and configuration.
-   * If a schema is provided, the output will be validated and typed accordingly.
-   * The method uses the `executeTools` function internally to process the input through the provided tools.
-   * The resulting ChainSmoker instance inherits the configuration from the current instance, with possible modifications from the configurator.
-   */
-  uses<S extends ZodSchema<any>>(
-    tools: ChainSmoker<any, any>[],
-    schema: S,
-    configurator?: (config: Configurator<z.infer<S>>) => void
-  ): ChainSmoker<I, z.infer<S>>;
-  uses(
-    tools: ChainSmoker<any, any>[],
-    configurator?: (config: Configurator<string>) => void
-  ): ChainSmoker<I, string>;
-  uses<S extends ZodSchema<any>>(
-    tools: ChainSmoker<any, any>[],
-    schemaOrConfigurator?: S | ((config: Configurator<string>) => void),
-    configurator?: (config: Configurator<z.infer<S> | string>) => void
-  ): ChainSmoker<I, z.infer<S> | string> {
-    let schema: S | undefined;
-    const config = new Configurator<z.infer<S> | string>();
+	/**
+	 * Executes a series of tools (other ChainSmoker instances) on the input.
+	 *
+	 * @template S - The Zod schema type for output validation (optional).
+	 * @template I - The input type of the ChainSmoker instance.
+	 *
+	 * @overload
+	 * @param {ChainSmoker<any, any>[]} tools - An array of ChainSmoker instances to be used as tools.
+	 * @param {S} schema - A Zod schema for output validation and typing.
+	 * @param {(config: Configurator<z.infer<S>>) => void} [configurator] - Optional function to configure the operation.
+	 * @returns {ChainSmoker<I, z.infer<S>>} A new ChainSmoker instance with the inferred schema type as output.
+	 *
+	 * @overload
+	 * @param {ChainSmoker<any, any>[]} tools - An array of ChainSmoker instances to be used as tools.
+	 * @param {(config: Configurator<string>) => void} [configurator] - Optional function to configure the operation.
+	 * @returns {ChainSmoker<I, string>} A new ChainSmoker instance with string output type.
+	 *
+	 * @param {ChainSmoker<any, any>[]} tools - An array of ChainSmoker instances to be used as tools.
+	 * @param {S | ((config: Configurator<string>) => void)} [schemaOrConfigurator] - Either a Zod schema or a configurator function.
+	 * @param {(config: Configurator<z.infer<S> | string>) => void} [configurator] - Optional function to configure the operation.
+	 * @returns {ChainSmoker<I, z.infer<S> | string>} A new ChainSmoker instance with either the inferred schema type or string as output.
+	 *
+	 * @remarks
+	 * This method creates a new ChainSmoker instance that executes the provided tools on the input.
+	 * It supports optional schema validation and configuration.
+	 * If a schema is provided, the output will be validated and typed accordingly.
+	 * The method uses the `executeTools` function internally to process the input through the provided tools.
+	 * The resulting ChainSmoker instance inherits the configuration from the current instance, with possible modifications from the configurator.
+	 */
+	uses<S extends ZodSchema<any>>(
+		tools: ChainSmoker<any, any>[],
+		schema: S,
+		configurator?: (config: Configurator<z.infer<S>>) => void,
+	): ChainSmoker<I, z.infer<S>>;
+	uses(
+		tools: ChainSmoker<any, any>[],
+		configurator?: (config: Configurator<string>) => void,
+	): ChainSmoker<I, string>;
+	uses<S extends ZodSchema<any>>(
+		tools: ChainSmoker<any, any>[],
+		schemaOrConfigurator?: S | ((config: Configurator<string>) => void),
+		configurator?: (config: Configurator<z.infer<S> | string>) => void,
+	): ChainSmoker<I, z.infer<S> | string> {
+		let schema: S | undefined;
+		const config = new Configurator<z.infer<S> | string>();
 
-    if (schemaOrConfigurator instanceof z.ZodType) {
-      schema = schemaOrConfigurator;
-      if (configurator) {
-        configurator(config);
-      }
-    } else if (typeof schemaOrConfigurator === "function") {
-      configurator = schemaOrConfigurator;
-      configurator(config);
-    }
+		if (schemaOrConfigurator instanceof z.ZodType) {
+			schema = schemaOrConfigurator;
+			if (configurator) {
+				configurator(config);
+			}
+		} else if (typeof schemaOrConfigurator === "function") {
+			const configuratorFunc = schemaOrConfigurator;
+			configuratorFunc(config);
+		}
 
-    const operation: Operation<O, z.infer<S> | string> = async (input: O) => {
-      this.logger.debug({
-        operation: "uses",
-        context: "init",
-        input,
-        instruction: config.getInstruction(),
-      });
-      const finalContent = await executeTools(
-        tools,
-        JSON.stringify(input),
-        schema,
-        config.getInstruction(),
-        { model: this.config.model }
-      );
+		const operation: Operation<O, z.infer<S> | string> = async (input: O) => {
+			this.logger.debug({
+				operation: "uses",
+				context: "init",
+				input,
+				instruction: config.getInstruction(),
+			});
+			const finalContent = await executeTools(
+				tools,
+				JSON.stringify(input),
+				schema,
+				config.getInstruction(),
+				{ model: this.config.model },
+			);
 
-      this.logger.debug({
-        operation: "uses",
-        context: "received tool execution output",
-        finalContent,
-        instruction: config.getInstruction(),
-      });
+			this.logger.debug({
+				operation: "uses",
+				context: "received tool execution output",
+				finalContent,
+				instruction: config.getInstruction(),
+			});
 
-      return finalContent;
-    };
+			return finalContent;
+		};
 
-    const newChainSmoker = new ChainSmoker<I, z.infer<S> | string>(
-      this.config.name,
-      this.inputSchema,
-      {
-        ...this.config,
-        instruction: config.getInstruction(),
-        examples: config.getExamples(),
-      }
-    );
-    newChainSmoker.operations = [...this.operations, operation];
-    return newChainSmoker;
-  }
+		const newChainSmoker = new ChainSmoker<I, z.infer<S> | string>(
+			this.config.name,
+			this.inputSchema,
+			{
+				...this.config,
+				instruction: config.getInstruction(),
+				examples: config.getExamples(),
+			},
+		);
+		newChainSmoker.operations = [...this.operations, operation];
+		return newChainSmoker;
+	}
 
-  /**
-   * Adds a logging step to the pipeline without modifying the data.
-   *
-   * @param logger - A function that logs the current state of the data.
-   * @returns A new {@link ChainSmoker} instance with the same input and output types.
-   */
-  log(logger: (input: O) => void): ChainSmoker<I, O> {
-    const logOperation: Operation<O, O> = async (data: O) => {
-      await logger(data);
-      return data;
-    };
+	/**
+	 * Adds a logging step to the pipeline without modifying the data.
+	 *
+	 * @param logger - A function that logs the current state of the data.
+	 * @returns A new {@link ChainSmoker} instance with the same input and output types.
+	 */
+	log(logger: (input: O) => void): ChainSmoker<I, O> {
+		const logOperation: Operation<O, O> = async (data: O) => {
+			await logger(data);
+			return data;
+		};
 
-    const newChainSmoker = new ChainSmoker<I, O>(
-      this.config.name,
-      this.inputSchema,
-      this.config,
-    );
-    newChainSmoker.operations = [...this.operations, logOperation];
-    return newChainSmoker;
-  }
+		const newChainSmoker = new ChainSmoker<I, O>(
+			this.config.name,
+			this.inputSchema,
+			this.config,
+		);
+		newChainSmoker.operations = [...this.operations, logOperation];
+		return newChainSmoker;
+	}
 
-  /**
-   * Executes the configured AI function pipeline with the given input.
-   *
-   * @param input - The input data for the AI function.
-   * @returns A promise that resolves to the final output of the AI function pipeline.
-   */
-  async run(input: I | string): Promise<O> {
-    this.logger.info({
-      context: "Running cig",
-      input,
-      operationCount: this.operations.length,
-    });
-    let result: unknown;
+	/**
+	 * Executes the configured AI function pipeline with the given input.
+	 *
+	 * @param input - The input data for the AI function.
+	 * @returns A promise that resolves to the final output of the AI function pipeline.
+	 */
+	async run(input: I | string): Promise<O> {
+		this.logger.info({
+			context: "Running cig",
+			input,
+			operationCount: this.operations.length,
+		});
+		let result: unknown;
 
-    if (typeof input === "string") {
-      this.logger.debug({ context: "Received string input" });
-      if (this.inputSchema) {
-        result = await processInput(input, this.inputSchema, "input");
-        this.logger.debug({ context: "Processed string input", result });
-      } else {
-        result = input;
-        this.logger.debug({
-          context: "Using raw string input (no schema provided)",
-        });
-      }
-    } else {
-      result = this.inputSchema ? this.inputSchema.parse(input) : input;
-    }
+		if (typeof input === "string") {
+			this.logger.debug({ context: "Received string input" });
+			if (this.inputSchema) {
+				result = await processInput(input, this.inputSchema, "input");
+				this.logger.debug({ context: "Processed string input", result });
+			} else {
+				result = input;
+				this.logger.debug({
+					context: "Using raw string input (no schema provided)",
+				});
+			}
+		} else {
+			result = this.inputSchema ? this.inputSchema.parse(input) : input;
+		}
 
-    if (this.operations.length === 0) {
-      const processedInput = typeof input === "string" ? input : JSON.stringify(input);
-      // If no operations are specified, use a default operation
-      return this.defaultOperation(processedInput) as unknown as O;
-    }
+		if (this.operations.length === 0) {
+			const processedInput =
+				typeof input === "string" ? input : JSON.stringify(input);
+			// If no operations are specified, use a default operation
+			return this.defaultOperation(processedInput) as unknown as O;
+		}
 
-    for (let i = 0; i < this.operations.length; i++) {
-      const operation = this.operations[i];
-      this.logger.debug({ context: `Operation ${i + 1} Input`, data: result });
-      result = await operation(result);
-      this.logger.debug({ context: `Operation ${i + 1} Output`, data: result });
-    }
+		for (let i = 0; i < this.operations.length; i++) {
+			const operation = this.operations[i];
+			this.logger.debug({ context: `Operation ${i + 1} Input`, data: result });
+			result = await operation(result);
+			this.logger.debug({ context: `Operation ${i + 1} Output`, data: result });
+		}
 
-    // return result as O;
-    return this.outputSchema ? this.outputSchema.parse(result) : result as O;
-  }
+		// return result as O;
+		return this.outputSchema ? this.outputSchema.parse(result) : (result as O);
+	}
 }
 
 /**
@@ -563,33 +564,33 @@ export class ChainSmoker<I = any, O = I> {
  * This type allows for two different calling signatures of the cig function.
  */
 type ChainSmokerBuilder = {
-  /**
-   * Creates a ChainSmoker with a specified input schema.
-   *
-   * @typeParam I - The input type for the ChainSmoker.
-   * @param name - The name of the ChainSmoker instance.
-   * @param inputSchema - The Zod schema for the input.
-   * @param configurator - Optional function to configure the ChainSmoker.
-   * @returns A new ChainSmoker instance.
-   */
-  <I>(
-    name: string,
-    inputSchema: ZodSchema<I>,
-    configurator?: (config: Configurator<I>) => void,
-    // ): ChainSmoker<I, I>;
-  ): ChainSmoker<I, any>;
+	/**
+	 * Creates a ChainSmoker with a specified input schema.
+	 *
+	 * @typeParam I - The input type for the ChainSmoker.
+	 * @param name - The name of the ChainSmoker instance.
+	 * @param inputSchema - The Zod schema for the input.
+	 * @param configurator - Optional function to configure the ChainSmoker.
+	 * @returns A new ChainSmoker instance.
+	 */
+	<I>(
+		name: string,
+		inputSchema: ZodSchema<I>,
+		configurator?: (config: Configurator<I>) => void,
+		// ): ChainSmoker<I, I>;
+	): ChainSmoker<I, any>;
 
-  /**
-   * Creates a ChainSmoker without a specified input schema.
-   *
-   * @param name - The name of the ChainSmoker instance.
-   * @param configurator - Optional function to configure the ChainSmoker.
-   * @returns A new ChainSmoker instance.
-   */
-  (
-    name: string,
-    configurator?: (config: Configurator<any>) => void,
-  ): ChainSmoker<any, any>;
+	/**
+	 * Creates a ChainSmoker without a specified input schema.
+	 *
+	 * @param name - The name of the ChainSmoker instance.
+	 * @param configurator - Optional function to configure the ChainSmoker.
+	 * @returns A new ChainSmoker instance.
+	 */
+	(
+		name: string,
+		configurator?: (config: Configurator<any>) => void,
+	): ChainSmoker<any, any>;
 };
 
 /**
@@ -642,27 +643,27 @@ type ChainSmokerBuilder = {
 //   return new ChainSmoker<I, I>(name, inputSchema, config);
 // }) as ChainSmokerBuilder;
 export const cig: ChainSmokerBuilder = (<I>(
-  name: string,
-  inputSchemaOrConfigurator?:
-    | ZodSchema<I>
-    | ((config: Configurator<any>) => void),
-  configurator?: (config: Configurator<I>) => void,
+	name: string,
+	inputSchemaOrConfigurator?:
+		| ZodSchema<I>
+		| ((config: Configurator<any>) => void),
+	configurator?: (config: Configurator<I>) => void,
 ): ChainSmoker<I, any> | ChainSmoker<any, any> => {
-  let inputSchema: ZodSchema<I> | null = null;
-  let config: Partial<ChainSmokerConfig> = {};
+	let inputSchema: ZodSchema<I> | null = null;
+	let config: Partial<ChainSmokerConfig> = {};
 
-  if (inputSchemaOrConfigurator instanceof ZodType) {
-    inputSchema = inputSchemaOrConfigurator;
-    if (configurator) {
-      const cfg = new Configurator<I>();
-      configurator(cfg);
-      config = cfg.getConfig();
-    }
-  } else if (typeof inputSchemaOrConfigurator === "function") {
-    const cfg = new Configurator<any>();
-    inputSchemaOrConfigurator(cfg);
-    config = cfg.getConfig();
-  }
+	if (inputSchemaOrConfigurator instanceof ZodType) {
+		inputSchema = inputSchemaOrConfigurator;
+		if (configurator) {
+			const cfg = new Configurator<I>();
+			configurator(cfg);
+			config = cfg.getConfig();
+		}
+	} else if (typeof inputSchemaOrConfigurator === "function") {
+		const cfg = new Configurator<any>();
+		inputSchemaOrConfigurator(cfg);
+		config = cfg.getConfig();
+	}
 
-  return new ChainSmoker<I, any>(name, inputSchema, config);
+	return new ChainSmoker<I, any>(name, inputSchema, config);
 }) as ChainSmokerBuilder;

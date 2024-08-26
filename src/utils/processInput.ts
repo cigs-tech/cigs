@@ -35,32 +35,33 @@ import { getStructuredResponse } from "./getStructuredResponse.ts";
  * ```
  */
 export async function processInput<TInput>(
-  input: TInput | string,
-  inputSchema?: ZodSchema<TInput>,
-  name?: string,
-  options: { model?: string } = {},
+	input: TInput | string,
+	inputSchema?: ZodSchema<TInput>,
+	name?: string,
+	options: { model?: string } = {},
 ): Promise<TInput> {
-  const { model = "gpt-4o-2024-08-06" } = options;
+	const { model = "gpt-4o-2024-08-06" } = options;
 
-  if (!inputSchema) {
-    return input as TInput;
-  }
+	if (!inputSchema) {
+		return input as TInput;
+	}
 
-  if (typeof input === "string") {
-    return await getStructuredResponse(input, inputSchema, undefined, name, {
-      model,
-    });
-  }
+	if (typeof input === "string") {
+		return await getStructuredResponse(input, inputSchema, undefined, name, {
+			model,
+		});
+	}
 
-  try {
-    return inputSchema.parse(input);
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      throw new Error(
-        `Invalid input format: ${error.errors.map((err) => err.message).join(", ")
-        }`,
-      );
-    }
-    throw new Error("Invalid input format");
-  }
+	try {
+		return inputSchema.parse(input);
+	} catch (error) {
+		if (error instanceof z.ZodError) {
+			throw new Error(
+				`Invalid input format: ${error.errors
+					.map((err) => err.message)
+					.join(", ")}`,
+			);
+		}
+		throw new Error("Invalid input format");
+	}
 }

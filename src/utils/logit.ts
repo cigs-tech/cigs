@@ -20,12 +20,12 @@ import { encode } from "gpt-tokenizer";
  * ```
  */
 export const createLogitBias = (
-  labels: readonly any[],
+	labels: readonly any[],
 ): Record<string, number> => {
-  const logitBias: Record<string, number> = {};
-  labels.forEach((_, index) => {
-    const token = encode(index.toString())[0];
-    logitBias[token] = 100;
-  });
-  return logitBias;
+	const logitBias: Record<string, number> = {};
+	labels.forEach((_, index) => {
+		const token = encode(index.toString())[0];
+		logitBias[token] = 100;
+	});
+	return logitBias;
 };

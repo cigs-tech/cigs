@@ -14,14 +14,17 @@ import type { ChainSmoker } from "../smoke.ts";
  * The resulting array of Zod functions is returned, ready to be used in the execution process.
  */
 export function createTools(tools: ChainSmoker<any, any>[]) {
-  return tools.map((tool) => {
-    const name = tool.config.name || "No name provided";
+	return tools.map((tool) => {
+		const name = tool.config.name || "No name provided";
 
-    return zodFunction({
-      name,
-      parameters: tool.getInputSchema(),
-      function: async (args: any) => await tool.run(args),
-      description: tool.config.instruction || tool.config.description || "No description provided",
-    });
-  });
+		return zodFunction({
+			name,
+			parameters: tool.getInputSchema(),
+			function: async (args: any) => await tool.run(args),
+			description:
+				tool.config.instruction ||
+				tool.config.description ||
+				"No description provided",
+		});
+	});
 }

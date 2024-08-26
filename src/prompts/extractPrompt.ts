@@ -1,12 +1,12 @@
+import type { ZodSchema } from "zod";
 import { templator } from "../clients/index.ts";
 import type { Example } from "../types/index.ts";
-import type { ZodSchema } from "zod";
 
 export interface ExtractPromptContext<T> {
-  data: string;
-  instructions?: string;
-  examples?: Example<T>[];
-  outputSchema: ZodSchema<T>;
+	data: string;
+	instructions?: string;
+	examples?: Example<T>[];
+	outputSchema: ZodSchema<T>;
 }
 
 const EXTRACT_PROMPT = `
@@ -28,17 +28,17 @@ requested format.
 
 // export async function classifyPrompt(context: ClassifyPromptContext) {
 export async function formatExtractPrompt<T>(
-  context: ExtractPromptContext<T>,
+	context: ExtractPromptContext<T>,
 ): Promise<string> {
-  try {
-    const result = await templator.renderString(EXTRACT_PROMPT, context);
-    if (result !== undefined) {
-      return result;
-    } else {
-      throw new Error("Failed to render the CLASSIFY_PROMPT.");
-    }
-  } catch (error) {
-    console.error("Error rendering CLASSIFY_PROMPT:", error);
-    throw error;
-  }
+	try {
+		const result = await templator.renderString(EXTRACT_PROMPT, context);
+		if (result !== undefined) {
+			return result;
+		}
+
+		throw new Error("Failed to render the CLASSIFY_PROMPT.");
+	} catch (error) {
+		console.error("Error rendering CLASSIFY_PROMPT:", error);
+		throw error;
+	}
 }
