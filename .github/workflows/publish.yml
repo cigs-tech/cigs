@@ -1,9 +1,13 @@
 name: Publish the package
 
+# on:
+#   push:
+#     tags:
+#       - 'v*'
+
 on:
-  push:
-    tags:
-      - 'v*'
+  release:
+    types: [created]
 
 jobs:
   jsr:
@@ -16,17 +20,29 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-
       - name: Install Deno
         uses: denoland/setup-deno@v1
         with:
           deno-version: v1.x
-
       - name: Install Node
         uses: actions/setup-node@v4
         with:
           node-version: '20.x'
-
       - run: npm ci
       - name: Publish on tag
         run: deno run -A jsr:@david/publish-on-tag@0.1.4
+
+  npm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          registry-url: 'https://registry.npmjs.org'
+      - run: npm ci
+      - run: npm run build
+      - name: Publish to npm
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
