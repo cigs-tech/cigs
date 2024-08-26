@@ -3,11 +3,9 @@ import { defineConfig } from "tsup";
 export default defineConfig({
   entry: ["src/index.ts"],
   outDir: "./dist",
-  splitting: true,
+  splitting: false,
   sourcemap: true,
   dts: true,
-  format: ["esm"],
-  bundle: true,
-  treeshake: true,
+  format: ['cjs', 'esm'],
   clean: true,
 });

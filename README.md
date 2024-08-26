@@ -44,8 +44,16 @@ export OPENAI_API_KEY='...'    # currently required for core functionality
 ### npm / node
 
 ```bash
-# Trying out jsr, I hate tsconfig and all that
-# If anyone wants it as a npm package, let me know
+npm install cigs
+```
+
+```ts
+import cig, { z } from "cigs";
+```
+
+### jsr
+
+```bash
 npx jsr add @cigs/cigs
 ```
 
