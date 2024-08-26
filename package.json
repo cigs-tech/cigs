@@ -1,9 +1,10 @@
 {
   "name": "cigs",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Composable Ai functions for Typescript built with OpenAI structured outputs and function calling",
   "type": "module",
-  "main": "./dist/index.js",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
